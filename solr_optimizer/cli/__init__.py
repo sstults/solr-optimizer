@@ -6,6 +6,4 @@ This package contains the command-line interface functionality for Solr Optimize
 
 from solr_optimizer.cli.main import main
 
-__all__ = [
-    "main"
-]
+__all__ = ["main"]

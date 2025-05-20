@@ -13,7 +13,7 @@ from typing import Dict, List, Optional
 class ExperimentConfig:
     """
     Configuration for an experiment, including corpus, queries, judgments, and metrics.
-    
+
     Attributes:
         experiment_id: Unique identifier for the experiment
         corpus: Name of the Solr collection/core to query
@@ -24,7 +24,7 @@ class ExperimentConfig:
         secondary_metrics: Optional list of additional metrics to track
         description: Optional description of the experiment
     """
-    
+
     corpus: str
     queries: List[str]
     judgments: Dict[str, Dict[str, int]]
@@ -33,7 +33,7 @@ class ExperimentConfig:
     experiment_id: Optional[str] = None
     secondary_metrics: List[str] = field(default_factory=list)
     description: Optional[str] = None
-    
+
     def __post_init__(self):
         """Validate the experiment configuration."""
         # Ensure all queries have judgments
@@ -50,7 +50,7 @@ class ExperimentConfig:
                 f"Invalid primary_metric: '{self.primary_metric}'. "
                 f"Must be one of: {', '.join(valid_metrics)}"
             )
-        
+
         # Validate metric depth
         if self.metric_depth <= 0:
             raise ValueError(f"metric_depth must be positive, got {self.metric_depth}")

@@ -11,7 +11,7 @@ from solr_optimizer.models.query_config import QueryConfig
 
 class TestExperimentConfig:
     """Test cases for the ExperimentConfig class."""
-    
+
     def test_valid_config_creation(self):
         """Test that a valid configuration can be created."""
         config = ExperimentConfig(
@@ -23,15 +23,15 @@ class TestExperimentConfig:
             },
             primary_metric="ndcg",
             metric_depth=10,
-            description="Test experiment"
+            description="Test experiment",
         )
-        
+
         assert config.corpus == "test_collection"
         assert len(config.queries) == 2
         assert config.primary_metric == "ndcg"
         assert config.metric_depth == 10
         assert config.description == "Test experiment"
-    
+
     def test_missing_judgments_validation(self):
         """Test validation for missing judgments."""
         with pytest.raises(ValueError, match="Missing judgments"):
@@ -43,9 +43,9 @@ class TestExperimentConfig:
                     "query2": {"doc4": 2, "doc5": 3},
                 },
                 primary_metric="ndcg",
-                metric_depth=10
+                metric_depth=10,
             )
-    
+
     def test_invalid_metric_validation(self):
         """Test validation for invalid metrics."""
         with pytest.raises(ValueError, match="Invalid primary_metric"):
@@ -54,9 +54,9 @@ class TestExperimentConfig:
                 queries=["query1"],
                 judgments={"query1": {"doc1": 3}},
                 primary_metric="invalid_metric",  # Invalid metric
-                metric_depth=10
+                metric_depth=10,
             )
-    
+
     def test_invalid_depth_validation(self):
         """Test validation for invalid metric depth."""
         with pytest.raises(ValueError, match="metric_depth must be positive"):
@@ -65,17 +65,17 @@ class TestExperimentConfig:
                 queries=["query1"],
                 judgments={"query1": {"doc1": 3}},
                 primary_metric="ndcg",
-                metric_depth=0  # Invalid depth
+                metric_depth=0,  # Invalid depth
             )
 
 
 class TestQueryConfig:
     """Test cases for the QueryConfig class."""
-    
+
     def test_default_values(self):
         """Test default values for QueryConfig."""
         config = QueryConfig()
-        
+
         assert config.query_parser == "edismax"
         assert config.query_fields == {}
         assert config.phrase_fields == {}
@@ -84,7 +84,7 @@ class TestQueryConfig:
         assert config.minimum_match is None
         assert config.tie_breaker == 0.0
         assert config.iteration_id is None
-    
+
     def test_to_solr_params(self):
         """Test conversion to Solr parameters."""
         config = QueryConfig(
@@ -95,11 +95,11 @@ class TestQueryConfig:
             boost_functions=["recip(rord(date),1,1000,1000)"],
             minimum_match="75%",
             tie_breaker=0.3,
-            additional_params={"facet": "true", "facet.field": "category"}
+            additional_params={"facet": "true", "facet.field": "category"},
         )
-        
+
         params = config.to_solr_params()
-        
+
         assert params["defType"] == "edismax"
         assert params["qf"] == "title^2.0 content^1.0"
         assert params["pf"] == "title^3.0"
