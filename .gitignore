@@ -53,3 +53,8 @@ venv.bak/
 
 # macOS specific files
 .DS_Store
+
+# Gradle
+.gradle/
+.gradle
+gradle-app.setting
