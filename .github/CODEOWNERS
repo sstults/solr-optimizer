@@ -1,0 +1,16 @@
+# These owners will be the default owners for everything in the repo.
+# They will be requested for review when someone opens a pull request.
+*       @project-maintainer
+
+# CI/CD workflow files ownership
+/.github/workflows/   @devops-team
+
+# Core framework code ownership
+/solr_optimizer/core/  @core-team
+/solr_optimizer/models/  @core-team
+
+# Agent implementations ownership
+/solr_optimizer/agents/  @agents-team
+
+# Test ownership
+/tests/  @qa-team

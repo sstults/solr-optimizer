@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solr_optimizer"
+version = "0.1.0"
+description = "A framework for optimizing Solr queries through systematic experimentation"
+readme = "README.md"
+authors = [
+    {name = "sstults"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "pysolr",
+    "requests",
+    "pandas",
+    "numpy",
+    "pyyaml",
+    "fastapi",
+    "uvicorn"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "isort",
+    "mypy",
+    "flake8"
+]
+
+[tool.setuptools]
+packages = ["solr_optimizer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
