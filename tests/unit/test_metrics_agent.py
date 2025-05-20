@@ -2,8 +2,9 @@
 Unit tests for the StandardMetricsAgent implementation.
 """
 
-import pytest
 import math
+
+import pytest
 
 from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
 from solr_optimizer.models.iteration_result import MetricResult

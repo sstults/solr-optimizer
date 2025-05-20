@@ -5,9 +5,9 @@ This module provides a concrete implementation of the MetricsAgent interface for
 calculating common Information Retrieval metrics such as NDCG, Precision, and Recall.
 """
 
-import math
 import logging
-from typing import Dict, List, Optional, Any
+import math
+from typing import Any, Dict, List, Optional
 
 from solr_optimizer.agents.metrics.metrics_agent import MetricsAgent
 from solr_optimizer.models.iteration_result import MetricResult

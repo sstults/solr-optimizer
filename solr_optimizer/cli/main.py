@@ -5,28 +5,28 @@ This module provides the main command-line interface for Solr Optimizer,
 including argument parsing and command execution.
 """
 
-import sys
-import os
 import argparse
-import logging
-import json
 import csv
 import datetime
+import json
+import logging
+import os
+import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from solr_optimizer.core.experiment_manager import ExperimentManager
-from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
-from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
-from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
-from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
 from solr_optimizer.agents.comparison.standard_comparison_agent import (
     StandardComparisonAgent,
 )
+from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
+from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
 from solr_optimizer.agents.query.query_tuning_agent import QueryTuningAgent
+from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
+from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
+from solr_optimizer.core.experiment_manager import ExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
-from solr_optimizer.models.query_config import QueryConfig
 from solr_optimizer.models.iteration_result import IterationResult
+from solr_optimizer.models.query_config import QueryConfig
 
 logger = logging.getLogger(__name__)
 

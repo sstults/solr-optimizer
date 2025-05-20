@@ -9,8 +9,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
 from solr_optimizer.models.experiment_config import ExperimentConfig
-from solr_optimizer.models.query_config import QueryConfig
 from solr_optimizer.models.iteration_result import IterationResult
+from solr_optimizer.models.query_config import QueryConfig
 
 
 class ExperimentManager(ABC):

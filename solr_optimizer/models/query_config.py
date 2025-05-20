@@ -6,7 +6,7 @@ parameters for Solr queries in an optimization experiment.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

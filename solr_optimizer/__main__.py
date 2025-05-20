@@ -5,6 +5,7 @@ This module provides a command-line interface for running experiments and optimi
 """
 
 import sys
+
 from solr_optimizer.cli.main import main as cli_main
 
 

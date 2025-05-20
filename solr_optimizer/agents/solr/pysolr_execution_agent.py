@@ -5,9 +5,9 @@ This module provides a concrete implementation of the SolrExecutionAgent interfa
 using the PySolr library to communicate with Apache Solr.
 """
 
-import logging
-from typing import Dict, List, Optional, Any
 import json
+import logging
+from typing import Any, Dict, List, Optional
 
 import pysolr
 import requests

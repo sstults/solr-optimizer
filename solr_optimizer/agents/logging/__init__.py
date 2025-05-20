@@ -5,7 +5,7 @@ This package contains implementations of the LoggingAgent interface which is res
 recording experiment iterations, configurations, and results.
 """
 
-from solr_optimizer.agents.logging.logging_agent import LoggingAgent
 from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
+from solr_optimizer.agents.logging.logging_agent import LoggingAgent
 
 __all__ = ["LoggingAgent", "FileBasedLoggingAgent"]

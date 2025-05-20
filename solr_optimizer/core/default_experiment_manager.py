@@ -5,23 +5,23 @@ This module provides a concrete implementation of the ExperimentManager interfac
 that coordinates the workflow between different agents.
 """
 
-import uuid
-from typing import Dict, List, Optional, Any
 import logging
+import uuid
+from typing import Any, Dict, List, Optional
 
-from solr_optimizer.core.experiment_manager import ExperimentManager
+from solr_optimizer.agents.comparison.comparison_agent import ComparisonAgent
+from solr_optimizer.agents.logging.logging_agent import LoggingAgent
+from solr_optimizer.agents.metrics.metrics_agent import MetricsAgent
 from solr_optimizer.agents.query.query_tuning_agent import QueryTuningAgent
 from solr_optimizer.agents.solr.solr_execution_agent import SolrExecutionAgent
-from solr_optimizer.agents.metrics.metrics_agent import MetricsAgent
-from solr_optimizer.agents.logging.logging_agent import LoggingAgent
-from solr_optimizer.agents.comparison.comparison_agent import ComparisonAgent
+from solr_optimizer.core.experiment_manager import ExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
-from solr_optimizer.models.query_config import QueryConfig
 from solr_optimizer.models.iteration_result import (
     IterationResult,
-    QueryResult,
     MetricResult,
+    QueryResult,
 )
+from solr_optimizer.models.query_config import QueryConfig
 
 logger = logging.getLogger(__name__)
 

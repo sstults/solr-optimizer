@@ -6,8 +6,8 @@ that analyzes differences between iterations and explains ranking changes.
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Tuple, Set
 from collections import defaultdict
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from solr_optimizer.agents.comparison.comparison_agent import ComparisonAgent
 from solr_optimizer.models.iteration_result import IterationResult

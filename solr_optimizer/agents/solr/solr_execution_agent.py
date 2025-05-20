@@ -6,7 +6,7 @@ executing queries against a Solr cluster and retrieving results.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from solr_optimizer.models.query_config import QueryConfig
 

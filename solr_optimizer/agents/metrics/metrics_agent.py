@@ -6,7 +6,7 @@ calculating relevance metrics based on query results and relevance judgments.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from solr_optimizer.models.iteration_result import MetricResult
 

@@ -2,8 +2,9 @@
 Unit tests for the model classes in the Solr Optimizer framework.
 """
 
-import pytest
 from typing import Dict, List
+
+import pytest
 
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.query_config import QueryConfig

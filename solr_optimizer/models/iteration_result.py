@@ -7,7 +7,7 @@ running queries with a specific configuration in an optimization experiment.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from solr_optimizer.models.query_config import QueryConfig
 

@@ -6,7 +6,7 @@ comparing iterations and explaining changes in rankings.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from solr_optimizer.models.iteration_result import IterationResult
 
