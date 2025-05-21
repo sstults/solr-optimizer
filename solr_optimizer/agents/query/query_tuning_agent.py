@@ -1,12 +1,13 @@
 """
-Query Tuning Agent - Interface for generating and modifying query configurations.
+Query Tuning Agent - Interface for generating and modifying query
+                     configurations.
 
 This module defines the QueryTuningAgent interface which is responsible for
 suggesting modifications to query configurations to improve relevance metrics.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.iteration_result import IterationResult
@@ -15,13 +16,15 @@ from solr_optimizer.models.query_config import QueryConfig
 
 class QueryTuningAgent(ABC):
     """
-    Agent responsible for generating and modifying query configurations to improve relevance metrics.
+    Agent responsible for generating and modifying query configurations to
+    improve relevance metrics.
     """
 
     @abstractmethod
     def analyze_schema(self, schema_info: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Analyze a Solr schema to identify potentially useful fields and configurations.
+        Analyze a Solr schema to identify potentially useful fields and
+        configurations.
 
         Args:
             schema_info: Schema information from Solr
@@ -36,7 +39,8 @@ class QueryTuningAgent(ABC):
         self, experiment_config: ExperimentConfig, schema_info: Dict[str, Any]
     ) -> QueryConfig:
         """
-        Generate an initial query configuration based on experiment settings and schema.
+        Generate an initial query configuration based on experiment settings
+        and schema.
 
         Args:
             experiment_config: The experiment configuration
@@ -52,7 +56,8 @@ class QueryTuningAgent(ABC):
         self, previous_result: IterationResult, schema_info: Dict[str, Any]
     ) -> QueryConfig:
         """
-        Suggest a new query configuration based on the results of a previous iteration.
+        Suggest a new query configuration based on the results of a previous
+        iteration.
 
         Args:
             previous_result: The results of the previous iteration

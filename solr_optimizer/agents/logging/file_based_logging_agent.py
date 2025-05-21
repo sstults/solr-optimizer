@@ -1,21 +1,20 @@
 """
-File-Based Logging Agent - Implementation of the LoggingAgent using the file system.
+File-Based Logging Agent - Implementation of the LoggingAgent.
 
 This module provides a concrete implementation of the LoggingAgent interface
-that stores experiment history and configuration as JSON files in a structured directory.
+that stores experiment history and configuration as JSON files in a structured
+directory.
 """
 
 import datetime
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from solr_optimizer.agents.logging.logging_agent import LoggingAgent
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.iteration_result import IterationResult
-from solr_optimizer.models.query_config import QueryConfig
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +75,8 @@ class FileBasedLoggingAgent(LoggingAgent):
         """Get the path to the experiment config file."""
         return self._get_experiment_dir(experiment_id) / "config.json"
 
-    def _get_iteration_path(self, experiment_id: str, iteration_id: str) -> Path:
+    def _get_iteration_path(self, experiment_id: str,
+                            iteration_id: str) -> Path:
         """Get the path to a specific iteration file."""
         return self._get_iterations_dir(experiment_id) / f"{iteration_id}.json"
 
@@ -127,7 +127,8 @@ class FileBasedLoggingAgent(LoggingAgent):
             if name is not None:
                 index["experiments"][experiment_id]["name"] = name
             if metadata is not None:
-                index["experiments"][experiment_id]["metadata"].update(metadata)
+                index["experiments"][experiment_id]["metadata"].update(
+                    metadata)
 
         # Update last modified timestamp
         index["experiments"][experiment_id][
@@ -154,7 +155,9 @@ class FileBasedLoggingAgent(LoggingAgent):
         iterations_dir.mkdir(parents=True, exist_ok=True)
 
         # Update the experiment index
-        self._update_index(experiment_id, metadata={"last_iteration": iteration_id})
+        self._update_index(
+            experiment_id, metadata={
+                "last_iteration": iteration_id})
 
         # Prepare iteration data for storage
         iteration_data = iteration_result.dict()
@@ -201,7 +204,8 @@ class FileBasedLoggingAgent(LoggingAgent):
             experiment_id: The experiment ID
 
         Returns:
-            List of iteration summary dictionaries sorted by timestamp (most recent first)
+            List of iteration summary dictionaries sorted by timestamp
+            (most recent first)
         """
         iterations_dir = self._get_iterations_dir(experiment_id)
 
@@ -248,7 +252,9 @@ class FileBasedLoggingAgent(LoggingAgent):
             iteration_summaries.append(summary)
 
         # Sort by timestamp (most recent first)
-        iteration_summaries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        iteration_summaries.sort(
+            key=lambda x: x.get(
+                "timestamp", ""), reverse=True)
 
         return iteration_summaries
 
@@ -313,7 +319,8 @@ class FileBasedLoggingAgent(LoggingAgent):
         try:
             return ExperimentConfig(**config_data)
         except Exception as e:
-            logger.error(f"Error deserializing experiment {experiment_id}: {e}")
+            logger.error(
+                f"Error deserializing experiment {experiment_id}: {e}")
             return None
 
     def list_experiments(self) -> List[Dict[str, Any]]:
@@ -337,11 +344,16 @@ class FileBasedLoggingAgent(LoggingAgent):
             experiments.append(experiment_summary)
 
         # Sort by last_modified (most recent first)
-        experiments.sort(key=lambda x: x.get("last_modified", ""), reverse=True)
+        experiments.sort(
+            key=lambda x: x.get(
+                "last_modified",
+                ""),
+            reverse=True)
 
         return experiments
 
-    def tag_iteration(self, experiment_id: str, iteration_id: str, tag: str) -> bool:
+    def tag_iteration(self, experiment_id: str,
+                      iteration_id: str, tag: str) -> bool:
         """
         Tag an iteration with a user-friendly name or category.
 
@@ -372,10 +384,14 @@ class FileBasedLoggingAgent(LoggingAgent):
         return self._write_json(tags_path, tags_data)
 
     def branch_experiment(
-        self, source_experiment_id: str, new_experiment_id: str = None, name: str = None
+        self,
+        source_experiment_id: str,
+        new_experiment_id: str = None,
+        name: str = None
     ) -> Optional[str]:
         """
-        Branch an experiment to create a new experiment with the same configuration.
+        Branch an experiment to create a new experiment with the same
+        configuration.
 
         Args:
             source_experiment_id: The ID of the source experiment
@@ -388,13 +404,15 @@ class FileBasedLoggingAgent(LoggingAgent):
         # Get the source experiment
         source_experiment = self.get_experiment(source_experiment_id)
         if not source_experiment:
-            logger.error(f"Source experiment not found: {source_experiment_id}")
+            logger.error(
+                f"Source experiment not found: {source_experiment_id}")
             return None
 
         # Create a copy of the experiment with a new ID
         new_id = (
             new_experiment_id
-            or f"{source_experiment_id}-branch-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            or f"{source_experiment_id}-branch-"
+            f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
         )
         branched_experiment = ExperimentConfig(
             **{
@@ -428,7 +446,8 @@ class FileBasedLoggingAgent(LoggingAgent):
         """
         index = self._read_json(self.index_path)
 
-        if "experiments" not in index or experiment_id not in index["experiments"]:
+        if ("experiments" not in index or
+                experiment_id not in index["experiments"]):
             logger.error(f"Experiment not found: {experiment_id}")
             return False
 
@@ -501,7 +520,8 @@ class FileBasedLoggingAgent(LoggingAgent):
                 return None
 
             # Check if experiment already exists
-            existing_experiment = self._get_experiment_config_path(experiment_id)
+            existing_experiment = self._get_experiment_config_path(
+                experiment_id)
             if existing_experiment.exists():
                 # Generate a new ID
                 import_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -510,7 +530,8 @@ class FileBasedLoggingAgent(LoggingAgent):
             # Create experiment config
             config_data = import_data.get("config")
             if not config_data:
-                logger.error("Import file does not contain experiment configuration")
+                logger.error(
+                    "Import file does not contain experiment configuration")
                 return None
 
             # Update experiment ID in config
@@ -527,7 +548,8 @@ class FileBasedLoggingAgent(LoggingAgent):
             for iteration_id, iteration_data in import_data.get(
                 "iterations", {}
             ).items():
-                iteration_path = self._get_iteration_path(experiment_id, iteration_id)
+                iteration_path = self._get_iteration_path(
+                    experiment_id, iteration_id)
                 self._write_json(iteration_path, iteration_data)
 
             # Import tags
@@ -536,5 +558,8 @@ class FileBasedLoggingAgent(LoggingAgent):
 
             return experiment_id
         except Exception as e:
-            logger.error(f"Error importing experiment from {source_path}: {e}")
+            logger.error(
+                f"Error importing experiment from {source_path}: "
+                f"{e}"
+            )
             return None

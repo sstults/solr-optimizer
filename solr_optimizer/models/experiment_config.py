@@ -12,15 +12,19 @@ from typing import Dict, List, Optional
 @dataclass
 class ExperimentConfig:
     """
-    Configuration for an experiment, including corpus, queries, judgments, and metrics.
+    Configuration for an experiment, including corpus, queries, judgments,
+    and metrics.
 
     Attributes:
         experiment_id: Unique identifier for the experiment
         corpus: Name of the Solr collection/core to query
         queries: List of test queries to optimize
-        judgments: Nested dictionary mapping query -> document_id -> relevance_score
-        primary_metric: Main metric to optimize for (e.g., 'ndcg', 'precision', 'recall')
-        metric_depth: Depth at which to calculate metrics (e.g., 10 for NDCG@10)
+        judgments: Nested dictionary mapping query -> document_id ->
+                   relevance_score
+        primary_metric: Main metric to optimize for
+                        (e.g., 'ndcg', 'precision', 'recall')
+        metric_depth: Depth at which to calculate metrics
+                      (e.g., 10 for NDCG@10)
         secondary_metrics: Optional list of additional metrics to track
         description: Optional description of the experiment
     """
@@ -53,4 +57,5 @@ class ExperimentConfig:
 
         # Validate metric depth
         if self.metric_depth <= 0:
-            raise ValueError(f"metric_depth must be positive, got {self.metric_depth}")
+            raise ValueError(f"metric_depth must be positive, got "
+                             f"{self.metric_depth}")

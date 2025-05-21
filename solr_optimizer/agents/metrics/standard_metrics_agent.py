@@ -1,8 +1,9 @@
 """
 Standard Metrics Agent - Implementation of MetricsAgent for common IR metrics.
 
-This module provides a concrete implementation of the MetricsAgent interface for
-calculating common Information Retrieval metrics such as NDCG, Precision, and Recall.
+This module provides a concrete implementation of the MetricsAgent interface
+for calculating common Information Retrieval metrics such as NDCG, Precision,
+and Recall.
 """
 
 import logging
@@ -22,7 +23,8 @@ class StandardMetricsAgent(MetricsAgent):
 
     def __init__(self):
         """Initialize the StandardMetricsAgent."""
-        self.supported_metrics = {"ndcg", "dcg", "precision", "recall", "mrr", "err"}
+        self.supported_metrics = {"ndcg", "dcg", "precision", "recall", "mrr",
+                                  "err"}
 
     def calculate_metric(
         self,
@@ -35,10 +37,12 @@ class StandardMetricsAgent(MetricsAgent):
         Calculate a single relevance metric for a query.
 
         Args:
-            metric_name: Name of the metric to calculate (e.g., 'ndcg', 'precision')
+            metric_name: Name of the metric to calculate
+                         (e.g., 'ndcg', 'precision')
             results: List of document IDs in result order
             judgments: Dictionary of document ID to relevance judgment
-            depth: Depth at which to calculate the metric (e.g., 10 for NDCG@10)
+            depth: Depth at which to calculate the metric
+                   (e.g., 10 for NDCG@10)
 
         Returns:
             The calculated metric value
@@ -82,7 +86,8 @@ class StandardMetricsAgent(MetricsAgent):
 
         Args:
             metrics: List of metrics to calculate
-            results_by_query: Dictionary mapping query to list of result document IDs
+            results_by_query: Dictionary mapping query to list of result
+                              document IDs
             judgments_by_query: Dictionary mapping query to document judgments
             depth: Depth at which to calculate metrics
 
@@ -100,7 +105,8 @@ class StandardMetricsAgent(MetricsAgent):
                 # Skip queries without judgments
                 if query not in judgments_by_query:
                     logger.warning(
-                        f"Query '{query}' has no judgments, skipping metric calculation"
+                        f"Query '{query}' has no judgments, "
+                        f"skipping metric calculation"
                     )
                     continue
 
@@ -113,7 +119,8 @@ class StandardMetricsAgent(MetricsAgent):
                     query_count += 1
                 except Exception as e:
                     logger.error(
-                        f"Error calculating {metric_name} for query '{query}': {str(e)}"
+                        f"Error calculating {metric_name} for query "
+                        f"'{query}': {str(e)}"
                     )
 
             # Calculate mean across all queries
@@ -151,7 +158,8 @@ class StandardMetricsAgent(MetricsAgent):
         normalized = {}
 
         if scale is None:
-            # Default scale: keep numeric values as is, convert non-numeric to binary
+            # Default scale: keep numeric values as is,
+            #                convert non-numeric to binary
             for query, docs in judgments.items():
                 normalized[query] = {}
                 for doc_id, judgment in docs.items():
@@ -159,7 +167,8 @@ class StandardMetricsAgent(MetricsAgent):
                         # Try to convert to float
                         normalized[query][doc_id] = float(judgment)
                     except (ValueError, TypeError):
-                        # If not numeric, treat as binary (relevant=1, not relevant=0)
+                        # If not numeric, treat as binary
+                        # (relevant=1, not relevant=0)
                         normalized[query][doc_id] = 1.0 if judgment else 0.0
         else:
             # Apply custom scale
@@ -170,7 +179,8 @@ class StandardMetricsAgent(MetricsAgent):
                         normalized[query][doc_id] = scale[judgment]
                     else:
                         logger.warning(
-                            f"Judgment value '{judgment}' not found in scale, defaulting to 0.0"
+                            f"Judgment value '{judgment}' not found in scale, "
+                            f"defaulting to 0.0"
                         )
                         normalized[query][doc_id] = 0.0
 
@@ -208,7 +218,7 @@ class StandardMetricsAgent(MetricsAgent):
             # Most common formula: gain = (2^rel - 1) / log2(i+2)
             if rel > 0:  # Skip irrelevant documents for efficiency
                 position = i + 1  # Convert to 1-indexed for formula
-                dcg += (2**rel - 1) / math.log2(position + 1)
+                dcg += (2 ** rel - 1) / math.log2(position + 1)
 
         return dcg
 
@@ -230,7 +240,8 @@ class StandardMetricsAgent(MetricsAgent):
 
         # Calculate ideal DCG (IDCG) by sorting documents by relevance
         relevant_docs = [
-            (doc_id, judgments[doc_id]) for doc_id in judgments if judgments[doc_id] > 0
+            (doc_id, judgments[doc_id]) for doc_id in judgments if
+            judgments[doc_id] > 0
         ]
         relevant_docs.sort(key=lambda x: x[1], reverse=True)
 
@@ -261,10 +272,12 @@ class StandardMetricsAgent(MetricsAgent):
             return 0.0
 
         # Count relevant documents in results
-        relevant_count = sum(1 for doc_id in results if judgments.get(doc_id, 0) > 0)
+        relevant_count = sum(
+            1 for doc_id in results if judgments.get(doc_id, 0) > 0)
         return relevant_count / len(results)
 
-    def _calculate_recall(self, results: List[str], judgments: Dict[str, int]) -> float:
+    def _calculate_recall(self, results: List[str],
+                          judgments: Dict[str, int]) -> float:
         """
         Calculate Recall.
 
@@ -287,7 +300,8 @@ class StandardMetricsAgent(MetricsAgent):
         )
         return relevant_in_results / total_relevant
 
-    def _calculate_mrr(self, results: List[str], judgments: Dict[str, int]) -> float:
+    def _calculate_mrr(self, results: List[str],
+                       judgments: Dict[str, int]) -> float:
         """
         Calculate Mean Reciprocal Rank (MRR).
 
@@ -323,7 +337,8 @@ class StandardMetricsAgent(MetricsAgent):
         """
         # Simplified ERR implementation
         err = 0.0
-        p_not_satisfied = 1.0  # Probability user not satisfied with previous results
+        # Probability user not satisfied with previous results
+        p_not_satisfied = 1.0
 
         max_grade = max(judgments.values()) if judgments else 0
 

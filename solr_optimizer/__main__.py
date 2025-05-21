@@ -1,7 +1,8 @@
 """
 Main entry point for the Solr Optimizer framework.
 
-This module provides a command-line interface for running experiments and optimizations.
+This module provides a command-line interface for running experiments and
+optimizations.
 """
 
 import sys

@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.iteration_result import IterationResult
-from solr_optimizer.models.query_config import QueryConfig
 
 
 class LoggingAgent(ABC):
@@ -97,7 +96,8 @@ class LoggingAgent(ABC):
         pass
 
     @abstractmethod
-    def tag_iteration(self, experiment_id: str, iteration_id: str, tag: str) -> bool:
+    def tag_iteration(self, experiment_id: str, iteration_id: str,
+                      tag: str) -> bool:
         """
         Tag an iteration with a user-friendly name or category.
 

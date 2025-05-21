@@ -1,13 +1,14 @@
 """
-Default Experiment Manager - Basic implementation of the ExperimentManager interface.
+Default Experiment Manager - Basic implementation of the ExperimentManager
+interface.
 
-This module provides a concrete implementation of the ExperimentManager interface
-that coordinates the workflow between different agents.
+This module provides a concrete implementation of the ExperimentManager
+interface that coordinates the workflow between different agents.
 """
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 
 from solr_optimizer.agents.comparison.comparison_agent import ComparisonAgent
 from solr_optimizer.agents.logging.logging_agent import LoggingAgent
@@ -18,7 +19,6 @@ from solr_optimizer.core.experiment_manager import ExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.iteration_result import (
     IterationResult,
-    MetricResult,
     QueryResult,
 )
 from solr_optimizer.models.query_config import QueryConfig
@@ -60,7 +60,8 @@ class DefaultExperimentManager(ExperimentManager):
         Set up a new experiment with the provided configuration.
 
         Args:
-            config: The experiment configuration including corpus, queries, and judgments
+            config: The experiment configuration including corpus, queries,
+                    and judgments
 
         Returns:
             The ID of the created experiment
@@ -76,7 +77,8 @@ class DefaultExperimentManager(ExperimentManager):
         success = self.logging_agent.save_experiment(config)
 
         if not success:
-            raise RuntimeError(f"Failed to save experiment: {config.experiment_id}")
+            raise RuntimeError(f"Failed to save experiment: "
+                               f"{config.experiment_id}")
 
         logger.info(f"Created new experiment: {config.experiment_id}")
         return config.experiment_id
@@ -100,10 +102,12 @@ class DefaultExperimentManager(ExperimentManager):
             raise ValueError(f"Experiment not found: {experiment_id}")
 
         # Generate iteration ID if not provided
-        iteration_id = query_config.iteration_id or f"iter-{uuid.uuid4().hex[:8]}"
+        iteration_id = (query_config.iteration_id or
+                        f"iter-{uuid.uuid4().hex[:8]}")
         query_config.iteration_id = iteration_id
 
-        logger.info(f"Running iteration {iteration_id} for experiment {experiment_id}")
+        logger.info(f"Running iteration {iteration_id} for experiment "
+                    f"{experiment_id}")
 
         # Execute queries
         query_results_dict = self.solr_execution_agent.execute_queries(
@@ -130,7 +134,8 @@ class DefaultExperimentManager(ExperimentManager):
         # Calculate metrics
         metrics = [experiment.primary_metric] + experiment.secondary_metrics
         metric_results = self.metrics_agent.calculate_metrics(
-            metrics, results_by_query, experiment.judgments, experiment.metric_depth
+            metrics, results_by_query, experiment.judgments,
+            experiment.metric_depth
         )
 
         # Create iteration result
@@ -195,7 +200,8 @@ class DefaultExperimentManager(ExperimentManager):
         # Generate comparison report
         return self.comparison_agent.generate_summary_report(iter1, iter2)
 
-    def get_iteration_history(self, experiment_id: str) -> List[IterationResult]:
+    def get_iteration_history(self,
+                              experiment_id: str) -> List[IterationResult]:
         """
         Get the history of iterations for an experiment.
 
@@ -210,12 +216,14 @@ class DefaultExperimentManager(ExperimentManager):
 
         # Retrieve full details for each iteration
         return [
-            self.logging_agent.get_iteration(experiment_id, summary["iteration_id"])
+            self.logging_agent.get_iteration(experiment_id,
+                                             summary["iteration_id"])
             for summary in iteration_summaries
-            if self.logging_agent.get_iteration(experiment_id, summary["iteration_id"])
+            if self.logging_agent.get_iteration(experiment_id,
+                                                summary["iteration_id"])
         ]
 
-    def get_current_state(self, experiment_id: str) -> Optional[IterationResult]:
+    def get_current_state(self, experiment_id: str):
         """
         Get the current state of an experiment.
 

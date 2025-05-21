@@ -23,11 +23,13 @@ class QueryConfig:
         boost_functions: List of boost function expressions
         minimum_match: Minimum should match parameter
         tie_breaker: Tie breaker value for field scores
-        additional_params: Any additional Solr parameters not covered by specific fields
+        additional_params: Any additional Solr parameters not covered by
+                           specific fields
     """
 
     query_parser: str = "edismax"
-    query_fields: Dict[str, float] = field(default_factory=dict)  # field -> boost value
+    # field -> boost value
+    query_fields: Dict[str, float] = field(default_factory=dict)
     phrase_fields: Dict[str, float] = field(
         default_factory=dict
     )  # field -> boost value
@@ -50,13 +52,15 @@ class QueryConfig:
         # Query fields (qf)
         if self.query_fields:
             params["qf"] = " ".join(
-                [f"{field}^{boost}" for field, boost in self.query_fields.items()]
+                [f"{field}^{boost}" for field, boost in
+                 self.query_fields.items()]
             )
 
         # Phrase fields (pf)
         if self.phrase_fields:
             params["pf"] = " ".join(
-                [f"{field}^{boost}" for field, boost in self.phrase_fields.items()]
+                [f"{field}^{boost}" for field, boost in
+                 self.phrase_fields.items()]
             )
 
         # Boost queries (bq)

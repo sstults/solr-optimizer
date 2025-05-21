@@ -2,8 +2,6 @@
 Unit tests for the model classes in the Solr Optimizer framework.
 """
 
-from typing import Dict, List
-
 import pytest
 
 from solr_optimizer.models.experiment_config import ExperimentConfig
@@ -38,7 +36,7 @@ class TestExperimentConfig:
         with pytest.raises(ValueError, match="Missing judgments"):
             ExperimentConfig(
                 corpus="test_collection",
-                queries=["query1", "query2", "query3"],  # query3 has no judgments
+                queries=["query1", "query2", "query3"],
                 judgments={
                     "query1": {"doc1": 3, "doc2": 1},
                     "query2": {"doc4": 2, "doc5": 3},
@@ -54,7 +52,7 @@ class TestExperimentConfig:
                 corpus="test_collection",
                 queries=["query1"],
                 judgments={"query1": {"doc1": 3}},
-                primary_metric="invalid_metric",  # Invalid metric
+                primary_metric="invalid_metric",
                 metric_depth=10,
             )
 
@@ -66,7 +64,7 @@ class TestExperimentConfig:
                 queries=["query1"],
                 judgments={"query1": {"doc1": 3}},
                 primary_metric="ndcg",
-                metric_depth=0,  # Invalid depth
+                metric_depth=0,
             )
 
 
@@ -96,7 +94,10 @@ class TestQueryConfig:
             boost_functions=["recip(rord(date),1,1000,1000)"],
             minimum_match="75%",
             tie_breaker=0.3,
-            additional_params={"facet": "true", "facet.field": "category"},
+            additional_params={
+                "facet": "true",
+                "facet.field": "category"
+            },
         )
 
         params = config.to_solr_params()

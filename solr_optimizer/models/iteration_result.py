@@ -59,7 +59,8 @@ class IterationResult:
         metric_results: List of metric calculation results
         timestamp: When the iteration was run
         compared_to: Optional ID of iteration this was compared to
-        metric_deltas: Optional dictionary of metric name to change vs. compared_to
+        metric_deltas: Optional dictionary of metric name to
+                       change vs. compared_to
         notes: Optional notes or observations
     """
 
@@ -110,7 +111,8 @@ class IterationResult:
             "experiment_id": self.experiment_id,
             "timestamp": self.timestamp.isoformat(),
             "metrics": {
-                metric.metric_name: metric.value for metric in self.metric_results
+                metric.metric_name: metric.value for metric in
+                self.metric_results
             },
             "metric_deltas": self.metric_deltas,
             "query_count": len(self.query_results),

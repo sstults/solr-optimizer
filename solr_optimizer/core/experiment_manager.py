@@ -1,8 +1,8 @@
 """
 Experiment Manager - Central coordinator for the Solr Optimizer framework.
 
-This module defines the ExperimentManager interface which orchestrates the experiment workflow
-and manages communication between all agents in the system.
+This module defines the ExperimentManager interface which orchestrates the
+experiment workflow and manages communication between all agents in the system.
 """
 
 from abc import ABC, abstractmethod
@@ -15,8 +15,8 @@ from solr_optimizer.models.query_config import QueryConfig
 
 class ExperimentManager(ABC):
     """
-    Central coordinator that orchestrates the experiment workflow and manages communication
-    between all agents in the system.
+    Central coordinator that orchestrates the experiment workflow and manages
+    communication between all agents in the system.
     """
 
     @abstractmethod
@@ -25,7 +25,8 @@ class ExperimentManager(ABC):
         Set up a new experiment with the provided configuration.
 
         Args:
-            config: The experiment configuration including corpus, queries, and judgments
+            config: The experiment configuration including corpus, queries,
+                    and judgments
 
         Returns:
             The ID of the created experiment
@@ -66,7 +67,8 @@ class ExperimentManager(ABC):
         pass
 
     @abstractmethod
-    def get_iteration_history(self, experiment_id: str) -> List[IterationResult]:
+    def get_iteration_history(self,
+                              experiment_id: str) -> List[IterationResult]:
         """
         Get the history of iterations for an experiment.
 
@@ -79,7 +81,8 @@ class ExperimentManager(ABC):
         pass
 
     @abstractmethod
-    def get_current_state(self, experiment_id: str) -> Optional[IterationResult]:
+    def get_current_state(self,
+                          experiment_id: str) -> Optional[IterationResult]:
         """
         Get the current state of an experiment.
 

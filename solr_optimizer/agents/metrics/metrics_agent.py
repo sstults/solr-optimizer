@@ -13,7 +13,8 @@ from solr_optimizer.models.iteration_result import MetricResult
 
 class MetricsAgent(ABC):
     """
-    Agent responsible for calculating relevance metrics based on query results and judgments.
+    Agent responsible for calculating relevance metrics based on query results
+    and judgments.
     """
 
     @abstractmethod
@@ -28,10 +29,12 @@ class MetricsAgent(ABC):
         Calculate a single relevance metric for a query.
 
         Args:
-            metric_name: Name of the metric to calculate (e.g., 'ndcg', 'precision')
+            metric_name: Name of the metric to calculate
+                         (e.g., 'ndcg', 'precision')
             results: List of document IDs in result order
             judgments: Dictionary of document ID to relevance judgment
-            depth: Depth at which to calculate the metric (e.g., 10 for NDCG@10)
+            depth: Depth at which to calculate the metric
+                   (e.g., 10 for NDCG@10)
 
         Returns:
             The calculated metric value
@@ -51,7 +54,8 @@ class MetricsAgent(ABC):
 
         Args:
             metrics: List of metrics to calculate
-            results_by_query: Dictionary mapping query to list of result document IDs
+            results_by_query: Dictionary mapping query to list of result
+                              document IDs
             judgments_by_query: Dictionary mapping query to document judgments
             depth: Depth at which to calculate metrics
 

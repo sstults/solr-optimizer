@@ -6,14 +6,15 @@ executing queries against a Solr cluster and retrieving results.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from solr_optimizer.models.query_config import QueryConfig
 
 
 class SolrExecutionAgent(ABC):
     """
-    Agent responsible for executing queries against a Solr cluster and retrieving results.
+    Agent responsible for executing queries against a Solr cluster and
+    retrieving results.
     """
 
     @abstractmethod

@@ -6,14 +6,15 @@ comparing iterations and explaining changes in rankings.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from solr_optimizer.models.iteration_result import IterationResult
 
 
 class ComparisonAgent(ABC):
     """
-    Agent responsible for comparing iterations and explaining changes in rankings.
+    Agent responsible for comparing iterations and explaining changes in
+    rankings.
     """
 
     @abstractmethod
@@ -54,7 +55,8 @@ class ComparisonAgent(ABC):
         self, iter1: IterationResult, iter2: IterationResult, query: str
     ) -> List[Dict[str, Any]]:
         """
-        Explain why document rankings changed between iterations for a specific query.
+        Explain why document rankings changed between iterations for a specific
+        query.
 
         Args:
             iter1: The first iteration result
@@ -62,7 +64,8 @@ class ComparisonAgent(ABC):
             query: The query to explain
 
         Returns:
-            List of dictionaries with explanation for each document that changed position
+            List of dictionaries with explanation for each document that
+            changed position
         """
         pass
 
