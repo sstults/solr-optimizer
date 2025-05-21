@@ -94,10 +94,7 @@ class TestQueryConfig:
             boost_functions=["recip(rord(date),1,1000,1000)"],
             minimum_match="75%",
             tie_breaker=0.3,
-            additional_params={
-                "facet": "true",
-                "facet.field": "category"
-            },
+            additional_params={"facet": "true", "facet.field": "category"},
         )
 
         params = config.to_solr_params()

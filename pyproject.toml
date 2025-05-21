@@ -36,7 +36,9 @@ dev = [
     "black",
     "isort",
     "mypy",
-    "flake8"
+    "flake8",
+    "Flake8-pyproject",
+    "types-requests"
 ]
 
 [tool.setuptools]
@@ -53,3 +55,7 @@ include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
+
+[tool.flake8]
+max-line-length = 88  # for Black compatibility
+extend-ignore = ["E203", "W503"]  # for Black compatibility

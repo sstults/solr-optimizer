@@ -4,9 +4,7 @@ Unit tests for the StandardMetricsAgent implementation.
 
 import pytest
 
-from solr_optimizer.agents.metrics.standard_metrics_agent import (
-    StandardMetricsAgent
-)
+from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
 from solr_optimizer.models.iteration_result import MetricResult
 
 
@@ -56,17 +54,13 @@ class TestStandardMetricsAgent:
 
     def test_ndcg_good_ranking(self):
         """Test NDCG calculation with good but imperfect ranking."""
-        ndcg = self.agent.calculate_metric(
-            "ndcg", self.good_ranking, self.judgments, 5
-        )
+        ndcg = self.agent.calculate_metric("ndcg", self.good_ranking, self.judgments, 5)
         # Good ranking should give high but not perfect NDCG
         assert 0.8 < ndcg < 1.0
 
     def test_ndcg_poor_ranking(self):
         """Test NDCG calculation with poor ranking."""
-        ndcg = self.agent.calculate_metric(
-            "ndcg", self.poor_ranking, self.judgments, 5
-        )
+        ndcg = self.agent.calculate_metric("ndcg", self.poor_ranking, self.judgments, 5)
         # Poor ranking should give low NDCG
         assert ndcg < 0.8
 
@@ -140,8 +134,7 @@ class TestStandardMetricsAgent:
     def test_empty_results(self):
         """Test handling of empty result lists."""
         empty_results = []
-        ndcg = self.agent.calculate_metric("ndcg", empty_results,
-                                           self.judgments, 5)
+        ndcg = self.agent.calculate_metric("ndcg", empty_results, self.judgments, 5)
         assert ndcg == 0.0
 
         precision = self.agent.calculate_metric(
@@ -151,22 +144,13 @@ class TestStandardMetricsAgent:
 
     def test_calculate_multiple_metrics(self):
         """Test calculation of multiple metrics at once."""
-        results_by_query = {
-            "query1": self.perfect_ranking,
-            "query2": self.good_ranking
-        }
+        results_by_query = {"query1": self.perfect_ranking, "query2": self.good_ranking}
 
-        judgments_by_query = {
-            "query1": self.judgments,
-            "query2": self.judgments
-        }
+        judgments_by_query = {"query1": self.judgments, "query2": self.judgments}
 
         # Calculate multiple metrics
         metric_results = self.agent.calculate_metrics(
-            ["ndcg", "precision"],
-            results_by_query,
-            judgments_by_query,
-            5
+            ["ndcg", "precision"], results_by_query, judgments_by_query, 5
         )
 
         # Check results

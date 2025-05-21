@@ -52,15 +52,13 @@ class QueryConfig:
         # Query fields (qf)
         if self.query_fields:
             params["qf"] = " ".join(
-                [f"{field}^{boost}" for field, boost in
-                 self.query_fields.items()]
+                [f"{field}^{boost}" for field, boost in self.query_fields.items()]
             )
 
         # Phrase fields (pf)
         if self.phrase_fields:
             params["pf"] = " ".join(
-                [f"{field}^{boost}" for field, boost in
-                 self.phrase_fields.items()]
+                [f"{field}^{boost}" for field, boost in self.phrase_fields.items()]
             )
 
         # Boost queries (bq)

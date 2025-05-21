@@ -111,8 +111,7 @@ class IterationResult:
             "experiment_id": self.experiment_id,
             "timestamp": self.timestamp.isoformat(),
             "metrics": {
-                metric.metric_name: metric.value for metric in
-                self.metric_results
+                metric.metric_name: metric.value for metric in self.metric_results
             },
             "metric_deltas": self.metric_deltas,
             "query_count": len(self.query_results),

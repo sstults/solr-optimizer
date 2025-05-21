@@ -96,8 +96,7 @@ class LoggingAgent(ABC):
         pass
 
     @abstractmethod
-    def tag_iteration(self, experiment_id: str, iteration_id: str,
-                      tag: str) -> bool:
+    def tag_iteration(self, experiment_id: str, iteration_id: str, tag: str) -> bool:
         """
         Tag an iteration with a user-friendly name or category.
 

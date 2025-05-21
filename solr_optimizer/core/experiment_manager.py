@@ -67,8 +67,7 @@ class ExperimentManager(ABC):
         pass
 
     @abstractmethod
-    def get_iteration_history(self,
-                              experiment_id: str) -> List[IterationResult]:
+    def get_iteration_history(self, experiment_id: str) -> List[IterationResult]:
         """
         Get the history of iterations for an experiment.
 
@@ -81,8 +80,7 @@ class ExperimentManager(ABC):
         pass
 
     @abstractmethod
-    def get_current_state(self,
-                          experiment_id: str) -> Optional[IterationResult]:
+    def get_current_state(self, experiment_id: str) -> Optional[IterationResult]:
         """
         Get the current state of an experiment.
 

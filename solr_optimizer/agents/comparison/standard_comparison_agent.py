@@ -196,9 +196,7 @@ class StandardComparisonAgent(ComparisonAgent):
                 "position_change": pos_change,
                 "score_before": scores1.get(doc_id, 0.0),
                 "score_after": scores2.get(doc_id, 0.0),
-                "score_change": (
-                    scores2.get(doc_id, 0.0) - scores1.get(doc_id, 0.0)
-                ),
+                "score_change": (scores2.get(doc_id, 0.0) - scores1.get(doc_id, 0.0)),
             }
 
             # Add explain info if available
@@ -274,10 +272,8 @@ class StandardComparisonAgent(ComparisonAgent):
                         "type": "metric",
                         "metric": metric,
                         "delta": delta,
-                        "before": iter1.metric_results.get("overall", {}).get(
-                            metric),
-                        "after": iter2.metric_results.get("overall", {}).get(
-                            metric),
+                        "before": iter1.metric_results.get("overall", {}).get(metric),
+                        "after": iter2.metric_results.get("overall", {}).get(metric),
                     }
                 )
 
@@ -297,8 +293,7 @@ class StandardComparisonAgent(ComparisonAgent):
             metrics2 = iter2.metric_results.get("per_query", {}).get(query, {})
 
             # Find queries with significant metric improvements or degradation
-            for metric_name in set(metrics1.keys()).intersection(
-                    set(metrics2.keys())):
+            for metric_name in set(metrics1.keys()).intersection(set(metrics2.keys())):
                 value1 = metrics1.get(metric_name, 0.0)
                 value2 = metrics2.get(metric_name, 0.0)
                 delta = value2 - value1
@@ -372,8 +367,7 @@ class StandardComparisonAgent(ComparisonAgent):
 
         # Get primary metric if available
         primary_metric = None
-        if ("overall" in iter1.metric_results and
-                iter1.metric_results["overall"]):
+        if "overall" in iter1.metric_results and iter1.metric_results["overall"]:
             primary_metric = next(iter(iter1.metric_results["overall"].keys()))
 
         # If we don't have a primary metric, we can't categorize queries
@@ -414,17 +408,15 @@ class StandardComparisonAgent(ComparisonAgent):
                     report["unchanged_queries"].append(query_summary)
 
                 # Add detailed comparison for this query
-                report["query_level_details"][query] = (
-                    self.compare_query_results(iter1, iter2, query)
+                report["query_level_details"][query] = self.compare_query_results(
+                    iter1, iter2, query
                 )
 
         # Sort the query lists by absolute delta
         report["improved_queries"].sort(
             key=lambda x: x["primary_metric"]["delta"], reverse=True
         )
-        report["degraded_queries"].sort(
-            key=lambda x: x["primary_metric"]["delta"]
-        )
+        report["degraded_queries"].sort(key=lambda x: x["primary_metric"]["delta"])
 
         return report
 
@@ -461,25 +453,13 @@ class StandardComparisonAgent(ComparisonAgent):
 
             # Parameter exists in both configs but with different values
             if param in config1 and param in config2 and val1 != val2:
-                changes[param] = {
-                    "before": val1,
-                    "after": val2,
-                    "type": "modified"
-                }
+                changes[param] = {"before": val1, "after": val2, "type": "modified"}
             # Parameter exists only in the first config
             elif param in config1 and param not in config2:
-                changes[param] = {
-                    "before": val1,
-                    "after": None,
-                    "type": "removed"
-                }
+                changes[param] = {"before": val1, "after": None, "type": "removed"}
             # Parameter exists only in the second config
             elif param not in config1 and param in config2:
-                changes[param] = {
-                    "before": None,
-                    "after": val2,
-                    "type": "added"
-                }
+                changes[param] = {"before": None, "after": val2, "type": "added"}
 
         return changes
 
@@ -500,9 +480,7 @@ class StandardComparisonAgent(ComparisonAgent):
             return {"error": "Missing explain information"}
 
         result = {
-            "score_change": (
-                explain2.get("value", 0) - explain1.get("value", 0)
-            ),
+            "score_change": (explain2.get("value", 0) - explain1.get("value", 0)),
             "main_contributors": [],
             "new_components": [],
             "removed_components": [],
@@ -523,29 +501,24 @@ class StandardComparisonAgent(ComparisonAgent):
             if component in components1 and component in components2:
                 delta = val2 - val1
                 if abs(delta) > 0.001:  # Only include significant changes
-                    result["changed_components"].append({
-                        "component": component,
-                        "before": val1,
-                        "after": val2,
-                        "delta": delta,
-                    })
+                    result["changed_components"].append(
+                        {
+                            "component": component,
+                            "before": val1,
+                            "after": val2,
+                            "delta": delta,
+                        }
+                    )
             elif component in components2:  # New component
-                result["new_components"].append({
-                    "component": component,
-                    "value": val2
-                })
+                result["new_components"].append({"component": component, "value": val2})
             else:  # Removed component
-                result["removed_components"].append({
-                    "component": component,
-                    "value": val1
-                })
+                result["removed_components"].append(
+                    {"component": component, "value": val1}
+                )
 
         # Sort by abs delta
         r_comp = result["changed_components"]
-        r_comp.sort(
-            key=lambda x: abs(x["delta"]),
-            reverse=True
-        )
+        r_comp.sort(key=lambda x: abs(x["delta"]), reverse=True)
 
         # Identify main contributors to score change
         if result["changed_components"]:

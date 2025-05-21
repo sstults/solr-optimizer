@@ -57,5 +57,6 @@ class ExperimentConfig:
 
         # Validate metric depth
         if self.metric_depth <= 0:
-            raise ValueError(f"metric_depth must be positive, got "
-                             f"{self.metric_depth}")
+            raise ValueError(
+                f"metric_depth must be positive, got " f"{self.metric_depth}"
+            )

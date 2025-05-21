@@ -23,8 +23,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
     Implementation of SolrExecutionAgent using the PySolr library.
     """
 
-    def __init__(self, solr_url: str, timeout: int = 10,
-                 always_commit: bool = False):
+    def __init__(self, solr_url: str, timeout: int = 10, always_commit: bool = False):
         """
         Initialize the PySolr Execution Agent.
 
@@ -38,8 +37,9 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         self.timeout = timeout
         self.always_commit = always_commit
         self.solr_clients = {}  # Cache for Solr clients by collection
-        logger.info(f"Initialized PySolrExecutionAgent with base URL: "
-                    f"{self.base_url}")
+        logger.info(
+            f"Initialized PySolrExecutionAgent with base URL: " f"{self.base_url}"
+        )
 
     def _get_client(self, collection: str) -> pysolr.Solr:
         """
@@ -54,8 +54,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         if collection not in self.solr_clients:
             collection_url = f"{self.base_url}/{collection}"
             self.solr_clients[collection] = pysolr.Solr(
-                collection_url, timeout=self.timeout,
-                always_commit=self.always_commit
+                collection_url, timeout=self.timeout, always_commit=self.always_commit
             )
         return self.solr_clients[collection]
 
@@ -91,8 +90,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
 
                 # Extract document IDs and scores
                 documents = [doc["id"] for doc in response.docs]
-                scores = {doc["id"]: doc.get("score", 0.0)
-                          for doc in response.docs}
+                scores = {doc["id"]: doc.get("score", 0.0) for doc in response.docs}
 
                 # Extract explain info if available
                 explain_info = {}
@@ -104,8 +102,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
                     "scores": scores,
                     "explain_info": explain_info,
                     "total_results": response.hits,
-                    "qtime": response.qtime if hasattr(response, "qtime")
-                    else None,
+                    "qtime": response.qtime if hasattr(response, "qtime") else None,
                 }
 
             except Exception as e:

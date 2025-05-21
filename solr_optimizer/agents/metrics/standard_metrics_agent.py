@@ -23,8 +23,7 @@ class StandardMetricsAgent(MetricsAgent):
 
     def __init__(self):
         """Initialize the StandardMetricsAgent."""
-        self.supported_metrics = {"ndcg", "dcg", "precision", "recall", "mrr",
-                                  "err"}
+        self.supported_metrics = {"ndcg", "dcg", "precision", "recall", "mrr", "err"}
 
     def calculate_metric(
         self,
@@ -218,7 +217,7 @@ class StandardMetricsAgent(MetricsAgent):
             # Most common formula: gain = (2^rel - 1) / log2(i+2)
             if rel > 0:  # Skip irrelevant documents for efficiency
                 position = i + 1  # Convert to 1-indexed for formula
-                dcg += (2 ** rel - 1) / math.log2(position + 1)
+                dcg += (2**rel - 1) / math.log2(position + 1)
 
         return dcg
 
@@ -240,8 +239,7 @@ class StandardMetricsAgent(MetricsAgent):
 
         # Calculate ideal DCG (IDCG) by sorting documents by relevance
         relevant_docs = [
-            (doc_id, judgments[doc_id]) for doc_id in judgments if
-            judgments[doc_id] > 0
+            (doc_id, judgments[doc_id]) for doc_id in judgments if judgments[doc_id] > 0
         ]
         relevant_docs.sort(key=lambda x: x[1], reverse=True)
 
@@ -272,12 +270,10 @@ class StandardMetricsAgent(MetricsAgent):
             return 0.0
 
         # Count relevant documents in results
-        relevant_count = sum(
-            1 for doc_id in results if judgments.get(doc_id, 0) > 0)
+        relevant_count = sum(1 for doc_id in results if judgments.get(doc_id, 0) > 0)
         return relevant_count / len(results)
 
-    def _calculate_recall(self, results: List[str],
-                          judgments: Dict[str, int]) -> float:
+    def _calculate_recall(self, results: List[str], judgments: Dict[str, int]) -> float:
         """
         Calculate Recall.
 
@@ -300,8 +296,7 @@ class StandardMetricsAgent(MetricsAgent):
         )
         return relevant_in_results / total_relevant
 
-    def _calculate_mrr(self, results: List[str],
-                       judgments: Dict[str, int]) -> float:
+    def _calculate_mrr(self, results: List[str], judgments: Dict[str, int]) -> float:
         """
         Calculate Mean Reciprocal Rank (MRR).
 

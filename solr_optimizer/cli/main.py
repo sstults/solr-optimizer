@@ -12,15 +12,11 @@ from typing import Dict, List
 from solr_optimizer.agents.comparison.standard_comparison_agent import (
     StandardComparisonAgent,
 )
-from solr_optimizer.agents.logging.file_based_logging_agent import \
-    FileBasedLoggingAgent
-from solr_optimizer.agents.metrics.standard_metrics_agent import \
-    StandardMetricsAgent
+from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
+from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
 from solr_optimizer.agents.query.query_tuning_agent import QueryTuningAgent
-from solr_optimizer.agents.solr.pysolr_execution_agent import \
-    PySolrExecutionAgent
-from solr_optimizer.core.default_experiment_manager import \
-    DefaultExperimentManager
+from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
+from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
 from solr_optimizer.core.experiment_manager import ExperimentManager
 
 logger = logging.getLogger(__name__)
@@ -33,8 +29,7 @@ def setup_logging(verbose: bool = False):
     logging.basicConfig(level=log_level, format=log_format)
 
 
-def create_experiment_manager(solr_url: str,
-                              storage_dir: str) -> ExperimentManager:
+def create_experiment_manager(solr_url: str, storage_dir: str) -> ExperimentManager:
     """
     Create and configure an experiment manager with all required agents.
 
@@ -82,8 +77,7 @@ def load_queries_from_csv(filepath: str) -> List[str]:
         with open(filepath, "r", newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             if "query" not in reader.fieldnames:
-                raise ValueError(f"CSV file must have a 'query' column: "
-                                 f"{filepath}")
+                raise ValueError(f"CSV file must have a 'query' column: " f"{filepath}")
 
             for row in reader:
                 if row["query"] and row["query"].strip():
@@ -113,8 +107,7 @@ def load_judgments_from_csv(filepath: str) -> Dict[str, Dict[str, float]]:
         with open(filepath, "r", newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             required_fields = ["query", "document_id", "relevance"]
-            if not all(field in reader.fieldnames
-                       for field in required_fields):
+            if not all(field in reader.fieldnames for field in required_fields):
                 raise ValueError(
                     f"CSV file must have 'query', 'document_id', "
                     f"and 'relevance' columns: {filepath}"
@@ -192,5 +185,6 @@ def load_judgments_from_trec(filepath: str) -> Dict[str, Dict[str, float]]:
     # when running commands
 
     return judgments
+
 
 # Rest of the file remains the same (truncated for brevity)
