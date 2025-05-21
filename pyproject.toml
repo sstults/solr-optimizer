@@ -49,7 +49,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ["py39", "py310"]
 include = '\.pyi?$'
 
@@ -57,5 +57,5 @@ include = '\.pyi?$'
 profile = "black"
 
 [tool.flake8]
-max-line-length = 88  # for Black compatibility
+max-line-length = 120  # for Black compatibility
 extend-ignore = ["E203", "W503"]  # for Black compatibility
