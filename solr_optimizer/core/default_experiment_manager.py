@@ -8,7 +8,7 @@ interface that coordinates the workflow between different agents.
 
 import logging
 import uuid
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from solr_optimizer.agents.comparison.comparison_agent import ComparisonAgent
 from solr_optimizer.agents.logging.logging_agent import LoggingAgent
@@ -54,6 +54,7 @@ class DefaultExperimentManager(ExperimentManager):
         self.metrics_agent = metrics_agent
         self.logging_agent = logging_agent
         self.comparison_agent = comparison_agent
+        self.current_queries: Optional[List[str]] = None  # Initialize current_queries
 
     def setup_experiment(self, config: ExperimentConfig) -> str:
         """
@@ -66,6 +67,9 @@ class DefaultExperimentManager(ExperimentManager):
         Returns:
             The ID of the created experiment
         """
+        # Store queries for potential overrides
+        self.current_queries = config.queries
+        
         # Generate ID if not provided
         if not config.experiment_id:
             config.experiment_id = f"exp-{uuid.uuid4().hex[:8]}"
@@ -104,9 +108,9 @@ class DefaultExperimentManager(ExperimentManager):
 
         logger.info(f"Running iteration {iteration_id} for experiment " f"{experiment_id}")
 
-        # Execute queries
+        # Execute queries using potentially overridden queries
         query_results_dict = self.solr_execution_agent.execute_queries(
-            experiment.corpus, experiment.queries, query_config
+            experiment.corpus, self.current_queries or experiment.queries, query_config
         )
 
         # Convert query results to the expected format for metrics calculation
@@ -163,7 +167,7 @@ class DefaultExperimentManager(ExperimentManager):
                     # Prioritize conversion methods from most to least specific
                     conversion_methods = [
                         lambda x: str(x) if hasattr(x, "__str__") else None,
-                        lambda x: x.decode("utf-8", errors="ignore") if isinstance(x, bytes) else None,
+                        lambda x: x.decode("utf-16", errors="ignore") if isinstance(x, bytes) else None,
                         lambda x: repr(x),
                     ]
 
@@ -297,3 +301,12 @@ class DefaultExperimentManager(ExperimentManager):
 
         # Return the most recent iteration (assumed to be first in list)
         return self.logging_agent.get_iteration(experiment_id, iteration_id)
+
+    def set_queries(self, queries: List[str]):
+        """
+        Set the queries to be used in the experiment.
+
+        Args:
+            queries: List of query strings to be used
+        """
+        self.current_queries = queries

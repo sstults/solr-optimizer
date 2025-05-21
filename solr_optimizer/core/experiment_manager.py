@@ -87,3 +87,13 @@ class ExperimentManager(ABC):
             The current iteration result or None if experiment does not exist
         """
         pass
+
+    @abstractmethod
+    def set_queries(self, queries: List[str]):
+        """
+        Set the queries to be used in the experiment.
+
+        Args:
+            queries: List of query strings to be used
+        """
+        pass

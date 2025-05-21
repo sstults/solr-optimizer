@@ -44,7 +44,7 @@ class DummyQueryTuningAgent(QueryTuningAgent):
         Returns:
             Empty QueryConfig object
         """
-        return QueryConfig(params={})
+        return QueryConfig(additional_params={})
 
     def suggest_next_config(self, previous_result: IterationResult, schema_info: Dict[str, Any]) -> QueryConfig:
         """
@@ -57,7 +57,7 @@ class DummyQueryTuningAgent(QueryTuningAgent):
         Returns:
             Empty QueryConfig object
         """
-        return QueryConfig(params={})
+        return QueryConfig(additional_params={})
 
     def adjust_parameters(self, result: IterationResult, target_metric: str, direction: str) -> QueryConfig:
         """
@@ -71,4 +71,4 @@ class DummyQueryTuningAgent(QueryTuningAgent):
         Returns:
             Empty QueryConfig object
         """
-        return QueryConfig(params={})
+        return QueryConfig(additional_params={})

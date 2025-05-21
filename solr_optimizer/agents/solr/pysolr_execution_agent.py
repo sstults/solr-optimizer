@@ -9,7 +9,7 @@ import json
 import logging
 from typing import Any, Dict, List
 
-import pysolr
+import pysolr  # type: ignore[import-untyped]
 import requests
 
 from solr_optimizer.agents.solr.solr_execution_agent import SolrExecutionAgent
@@ -36,7 +36,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         self.base_url = solr_url.rstrip("/")
         self.timeout = timeout
         self.always_commit = always_commit
-        self.solr_clients = {}  # Cache for Solr clients by collection
+        self.solr_clients: Dict[str, pysolr.Solr] = {}  # Cache for Solr clients by collection
         logger.info(f"Initialized PySolrExecutionAgent with base URL: " f"{self.base_url}")
 
     def _get_client(self, collection: str) -> pysolr.Solr:

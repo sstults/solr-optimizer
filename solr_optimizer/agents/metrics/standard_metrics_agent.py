@@ -142,7 +142,7 @@ class StandardMetricsAgent(MetricsAgent):
         Returns:
             Normalized judgments
         """
-        normalized = {}
+        normalized: dict[str, dict[str, float]] = {}
 
         if scale is None:
             # Default scale: keep numeric values as is,

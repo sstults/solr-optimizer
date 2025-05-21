@@ -40,13 +40,14 @@ class FileBasedLoggingAgent(LoggingAgent):
     └── index.json
     """
 
-    def __init__(self, storage_dir: str = "experiment_storage"):
+    def __init__(self, storage_dir: Optional[str] = None):
         """
         Initialize the FileBasedLoggingAgent.
 
         Args:
             storage_dir: Directory where experiment data will be stored
         """
+        storage_dir = storage_dir or "experiment_storage"
         self.storage_dir = Path(storage_dir)
         self.experiments_dir = self.storage_dir / "experiments"
         self.index_path = self.storage_dir / "index.json"
@@ -88,7 +89,11 @@ class FileBasedLoggingAgent(LoggingAgent):
         try:
             if path.exists():
                 with open(path, "r") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        return data
+                    logger.error(f"Expected JSON object in {path}, got {type(data)}")
+                    return {}
             return {}
         except Exception as e:
             logger.error(f"Error reading JSON from {path}: {e}")
@@ -107,7 +112,7 @@ class FileBasedLoggingAgent(LoggingAgent):
             logger.error(f"Error writing JSON to {path}: {e}")
             return False
 
-    def _update_index(self, experiment_id: str, name: str = None, metadata: Dict = None) -> bool:
+    def _update_index(self, experiment_id: str, name: Optional[str] = None, metadata: Optional[Dict] = None) -> bool:
         """Update the index file with experiment information."""
         index = self._read_json(self.index_path)
 
@@ -152,7 +157,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         self._update_index(experiment_id, metadata={"last_iteration": iteration_id})
 
         # Prepare iteration data for storage
-        iteration_data = iteration_result.dict()
+        iteration_data = iteration_result.model_dump()
 
         # Record timestamp if not already present
         if "timestamp" not in iteration_data:
@@ -302,7 +307,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         config_data = self._read_json(config_path)
 
         try:
-            return ExperimentConfig(**config_data)
+            return ExperimentConfig(**config_data.model_dump())
         except Exception as e:
             logger.error(f"Error deserializing experiment {experiment_id}: {e}")
             return None
@@ -363,7 +368,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         return self._write_json(tags_path, tags_data)
 
     def branch_experiment(
-        self, source_experiment_id: str, new_experiment_id: str = None, name: str = None
+        self, source_experiment_id: str, new_experiment_id: Optional[str] = None, name: Optional[str] = None
     ) -> Optional[str]:
         """
         Branch an experiment to create a new experiment with the same
@@ -389,7 +394,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         )
         branched_experiment = ExperimentConfig(
             **{
-                **source_experiment.dict(),
+                **source_experiment.model_dump(),
                 "experiment_id": new_id,
                 "name": name or f"Branch of {source_experiment_id}",
             }
@@ -442,7 +447,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         """
         export_data = {
             "experiment_id": experiment_id,
-            "config": (self.get_experiment(experiment_id).dict() if self.get_experiment(experiment_id) else None),
+            "config": (self.get_experiment(experiment_id).model_dump() if self.get_experiment(experiment_id) else None),
             "iterations": {},
             "tags": self._read_json(self._get_tags_path(experiment_id)),
             "export_date": datetime.datetime.now().isoformat(),
