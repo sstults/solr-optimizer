@@ -107,9 +107,7 @@ class FileBasedLoggingAgent(LoggingAgent):
             logger.error(f"Error writing JSON to {path}: {e}")
             return False
 
-    def _update_index(
-        self, experiment_id: str, name: str = None, metadata: Dict = None
-    ) -> bool:
+    def _update_index(self, experiment_id: str, name: str = None, metadata: Dict = None) -> bool:
         """Update the index file with experiment information."""
         index = self._read_json(self.index_path)
 
@@ -129,9 +127,7 @@ class FileBasedLoggingAgent(LoggingAgent):
                 index["experiments"][experiment_id]["metadata"].update(metadata)
 
         # Update last modified timestamp
-        index["experiments"][experiment_id][
-            "last_modified"
-        ] = datetime.datetime.now().isoformat()
+        index["experiments"][experiment_id]["last_modified"] = datetime.datetime.now().isoformat()
 
         return self._write_json(self.index_path, index)
 
@@ -166,9 +162,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         iteration_path = self._get_iteration_path(experiment_id, iteration_id)
         return self._write_json(iteration_path, iteration_data)
 
-    def get_iteration(
-        self, experiment_id: str, iteration_id: str
-    ) -> Optional[IterationResult]:
+    def get_iteration(self, experiment_id: str, iteration_id: str) -> Optional[IterationResult]:
         """
         Retrieve a specific iteration result from storage.
 
@@ -230,10 +224,7 @@ class FileBasedLoggingAgent(LoggingAgent):
                 }
 
             # Add primary metric if available
-            if (
-                "metric_results" in iteration_data
-                and "overall" in iteration_data["metric_results"]
-            ):
+            if "metric_results" in iteration_data and "overall" in iteration_data["metric_results"]:
                 metrics = iteration_data["metric_results"]["overall"]
                 if metrics:
                     # Just include the first metric for the summary
@@ -394,9 +385,7 @@ class FileBasedLoggingAgent(LoggingAgent):
 
         # Create a copy of the experiment with a new ID
         new_id = (
-            new_experiment_id
-            or f"{source_experiment_id}-branch-"
-            f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            new_experiment_id or f"{source_experiment_id}-branch-" f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
         )
         branched_experiment = ExperimentConfig(
             **{
@@ -436,9 +425,7 @@ class FileBasedLoggingAgent(LoggingAgent):
 
         # Mark as archived in the index
         index["experiments"][experiment_id]["archived"] = True
-        index["experiments"][experiment_id][
-            "archive_date"
-        ] = datetime.datetime.now().isoformat()
+        index["experiments"][experiment_id]["archive_date"] = datetime.datetime.now().isoformat()
 
         return self._write_json(self.index_path, index)
 
@@ -455,11 +442,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         """
         export_data = {
             "experiment_id": experiment_id,
-            "config": (
-                self.get_experiment(experiment_id).dict()
-                if self.get_experiment(experiment_id)
-                else None
-            ),
+            "config": (self.get_experiment(experiment_id).dict() if self.get_experiment(experiment_id) else None),
             "iterations": {},
             "tags": self._read_json(self._get_tags_path(experiment_id)),
             "export_date": datetime.datetime.now().isoformat(),
@@ -470,9 +453,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         if iterations_dir.exists():
             for iteration_file in iterations_dir.glob("*.json"):
                 iteration_id = iteration_file.stem
-                export_data["iterations"][iteration_id] = self._read_json(
-                    iteration_file
-                )
+                export_data["iterations"][iteration_id] = self._read_json(iteration_file)
 
         # Write the export file
         try:
@@ -526,9 +507,7 @@ class FileBasedLoggingAgent(LoggingAgent):
             iterations_dir = self._get_iterations_dir(experiment_id)
             iterations_dir.mkdir(parents=True, exist_ok=True)
 
-            for iteration_id, iteration_data in import_data.get(
-                "iterations", {}
-            ).items():
+            for iteration_id, iteration_data in import_data.get("iterations", {}).items():
                 iteration_path = self._get_iteration_path(experiment_id, iteration_id)
                 self._write_json(iteration_path, iteration_data)
 

@@ -37,9 +37,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         self.timeout = timeout
         self.always_commit = always_commit
         self.solr_clients = {}  # Cache for Solr clients by collection
-        logger.info(
-            f"Initialized PySolrExecutionAgent with base URL: " f"{self.base_url}"
-        )
+        logger.info(f"Initialized PySolrExecutionAgent with base URL: " f"{self.base_url}")
 
     def _get_client(self, collection: str) -> pysolr.Solr:
         """
@@ -58,9 +56,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
             )
         return self.solr_clients[collection]
 
-    def execute_queries(
-        self, corpus: str, queries: List[str], query_config: QueryConfig
-    ) -> Dict[str, Dict[str, Any]]:
+    def execute_queries(self, corpus: str, queries: List[str], query_config: QueryConfig) -> Dict[str, Dict[str, Any]]:
         """
         Execute a set of queries against the specified Solr collection.
 
@@ -136,9 +132,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
             logger.error(f"Error fetching schema for {corpus}: {str(e)}")
             return {}
 
-    def get_explain_info(
-        self, corpus: str, query: str, doc_id: str, query_config: QueryConfig
-    ) -> Dict[str, Any]:
+    def get_explain_info(self, corpus: str, query: str, doc_id: str, query_config: QueryConfig) -> Dict[str, Any]:
         """
         Get the Solr explain information for a specific document in a query.
 
@@ -170,9 +164,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
             logger.error(f"Error getting explain info: {str(e)}")
             return {}
 
-    def execute_streaming_expression(
-        self, corpus: str, expression: str
-    ) -> Dict[str, Any]:
+    def execute_streaming_expression(self, corpus: str, expression: str) -> Dict[str, Any]:
         """
         Execute a Solr streaming expression.
 

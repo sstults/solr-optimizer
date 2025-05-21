@@ -14,24 +14,21 @@ Requirements:
 - solr_optimizer package installed
 """
 
+import logging
 import os
 import sys
-import json
-import logging
 import tempfile
-from pathlib import Path
 
-from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
-from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
-from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
-from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
 from solr_optimizer.agents.comparison.standard_comparison_agent import (
     StandardComparisonAgent,
 )
+from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
+from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
 from solr_optimizer.agents.query.query_tuning_agent import QueryTuningAgent
+from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
+from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.query_config import QueryConfig
-
 
 # Configure logging
 logging.basicConfig(
@@ -144,9 +141,7 @@ def run_experiment(solr_url, storage_dir, corpus_name):
 
     baseline_result = experiment_manager.run_iteration(experiment_id, baseline_config)
     logger.info(f"Completed baseline iteration: {baseline_result.iteration_id}")
-    logger.info(
-        f"Baseline NDCG: {baseline_result.metric_results.get('overall', {}).get('ndcg', 0.0):.4f}"
-    )
+    logger.info(f"Baseline NDCG: {baseline_result.metric_results.get('overall', {}).get('ndcg', 0.0):.4f}")
 
     # Step 3: Run iteration with boosted title field
     boosted_title_config = QueryConfig(
@@ -156,13 +151,9 @@ def run_experiment(solr_url, storage_dir, corpus_name):
         qf="title^3.0 content^1.0",  # Adjust field names according to your schema
     )
 
-    boosted_title_result = experiment_manager.run_iteration(
-        experiment_id, boosted_title_config
-    )
+    boosted_title_result = experiment_manager.run_iteration(experiment_id, boosted_title_config)
     logger.info(f"Completed title boost iteration: {boosted_title_result.iteration_id}")
-    logger.info(
-        f"Title boost NDCG: {boosted_title_result.metric_results.get('overall', {}).get('ndcg', 0.0):.4f}"
-    )
+    logger.info(f"Title boost NDCG: {boosted_title_result.metric_results.get('overall', {}).get('ndcg', 0.0):.4f}")
 
     # Step 4: Run iteration with phrase boosting
     phrase_boost_config = QueryConfig(
@@ -173,20 +164,14 @@ def run_experiment(solr_url, storage_dir, corpus_name):
         pf="title^5.0",  # Adjust field names according to your schema
     )
 
-    phrase_boost_result = experiment_manager.run_iteration(
-        experiment_id, phrase_boost_config
-    )
+    phrase_boost_result = experiment_manager.run_iteration(experiment_id, phrase_boost_config)
     logger.info(f"Completed phrase boost iteration: {phrase_boost_result.iteration_id}")
-    logger.info(
-        f"Phrase boost NDCG: {phrase_boost_result.metric_results.get('overall', {}).get('ndcg', 0.0):.4f}"
-    )
+    logger.info(f"Phrase boost NDCG: {phrase_boost_result.metric_results.get('overall', {}).get('ndcg', 0.0):.4f}")
 
     # Step 5: Tag the best iteration
     # Find the best iteration based on NDCG score
     iterations = [baseline_result, boosted_title_result, phrase_boost_result]
-    best_iteration = max(
-        iterations, key=lambda it: it.metric_results.get("overall", {}).get("ndcg", 0.0)
-    )
+    best_iteration = max(iterations, key=lambda it: it.metric_results.get("overall", {}).get("ndcg", 0.0))
 
     logging_agent.tag_iteration(experiment_id, best_iteration.iteration_id, "best")
     logger.info(f"Tagged iteration {best_iteration.iteration_id} as 'best'")
@@ -197,9 +182,7 @@ def run_experiment(solr_url, storage_dir, corpus_name):
     )
 
     logger.info("\nComparison results:")
-    logger.info(
-        f"NDCG delta: {comparison.get('metrics_comparison', {}).get('ndcg', 0.0):+.4f}"
-    )
+    logger.info(f"NDCG delta: {comparison.get('metrics_comparison', {}).get('ndcg', 0.0):+.4f}")
 
     improved_queries = comparison.get("improved_queries", [])
     degraded_queries = comparison.get("degraded_queries", [])
@@ -220,9 +203,7 @@ def run_experiment(solr_url, storage_dir, corpus_name):
     logger.info(f"Exported experiment to {export_path}")
 
     # Step 8: Create a branch of the experiment for further optimization
-    branch_id = logging_agent.branch_experiment(
-        experiment_id, name="Advanced optimization branch"
-    )
+    branch_id = logging_agent.branch_experiment(experiment_id, name="Advanced optimization branch")
     logger.info(f"Created branch experiment with ID: {branch_id}")
 
     return experiment_id

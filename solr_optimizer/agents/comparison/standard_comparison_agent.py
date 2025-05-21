@@ -6,7 +6,7 @@ that analyzes differences between iterations and explains ranking changes.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TypedDict, cast
 
 from solr_optimizer.agents.comparison.comparison_agent import ComparisonAgent
 from solr_optimizer.models.iteration_result import IterationResult
@@ -43,9 +43,30 @@ class StandardComparisonAgent(ComparisonAgent):
         self.significant_rank_change = significant_rank_change
         self.analyze_top_n = analyze_top_n
 
-    def compare_overall_metrics(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> Dict[str, float]:
+    def _get_metric_values_by_name(self, metric_results: List[Any]) -> Dict[str, float]:
+        """Convert a list of MetricResult objects to a dict of metric_name -> value"""
+        if isinstance(metric_results, list):
+            return {metric.metric_name: metric.value for metric in metric_results if hasattr(metric, "metric_name")}
+        elif isinstance(metric_results, dict):
+            # Legacy support for when metric_results was a dict
+            return dict(metric_results.get("overall", {}))
+        return {}
+
+    def _get_metric_values_by_query(self, metric_results: List[Any], query: str) -> Dict[str, float]:
+        """Get metric values for a specific query from a list of MetricResult objects"""
+        result = {}
+        if isinstance(metric_results, list):
+            for metric in metric_results:
+                if hasattr(metric, "per_query") and isinstance(metric.per_query, dict):
+                    if query in metric.per_query:
+                        result[metric.metric_name] = metric.per_query[query]
+        elif isinstance(metric_results, dict):
+            per_query = metric_results.get("per_query", {})
+            if isinstance(per_query, dict) and query in per_query:
+                return dict(per_query[query])
+        return result
+
+    def compare_overall_metrics(self, iter1: IterationResult, iter2: IterationResult) -> Dict[str, float]:
         """
         Compare the overall metrics between two iterations.
 
@@ -59,8 +80,8 @@ class StandardComparisonAgent(ComparisonAgent):
         deltas = {}
 
         # Extract overall metrics from both iterations
-        metrics1 = iter1.metric_results.get("overall", {})
-        metrics2 = iter2.metric_results.get("overall", {})
+        metrics1 = self._get_metric_values_by_name(iter1.metric_results)
+        metrics2 = self._get_metric_values_by_name(iter2.metric_results)
 
         # Calculate deltas for all metrics present in both iterations
         for metric_name in set(metrics1.keys()).union(metrics2.keys()):
@@ -70,9 +91,25 @@ class StandardComparisonAgent(ComparisonAgent):
 
         return deltas
 
-    def compare_query_results(
-        self, iter1: IterationResult, iter2: IterationResult, query: str
-    ) -> Dict[str, Any]:
+    def _get_query_result(self, iteration: IterationResult, query: str) -> Dict[str, Any]:
+        """Get a dictionary representation of a QueryResult object"""
+        if query not in iteration.query_results:
+            return {"documents": [], "scores": {}, "explain_info": {}}
+
+        query_result = iteration.query_results[query]
+
+        # If query_result is already a dict, return it
+        if isinstance(query_result, dict):
+            return dict(query_result)
+
+        # If it's a QueryResult object, extract its attributes
+        return {
+            "documents": list(getattr(query_result, "documents", [])),
+            "scores": dict(getattr(query_result, "scores", {})),
+            "explain_info": dict(getattr(query_result, "explain_info", {})),
+        }
+
+    def compare_query_results(self, iter1: IterationResult, iter2: IterationResult, query: str) -> Dict[str, Any]:
         """
         Compare the results for a specific query between two iterations.
 
@@ -84,7 +121,8 @@ class StandardComparisonAgent(ComparisonAgent):
         Returns:
             Dictionary with comparison information
         """
-        result = {
+        # Initialize with proper typing for mypy
+        result: Dict[str, Any] = {
             "query": query,
             "metrics_comparison": {},
             "documents_comparison": {},
@@ -93,8 +131,8 @@ class StandardComparisonAgent(ComparisonAgent):
         }
 
         # Compare metrics for this query
-        metrics1 = iter1.metric_results.get("per_query", {}).get(query, {})
-        metrics2 = iter2.metric_results.get("per_query", {}).get(query, {})
+        metrics1 = self._get_metric_values_by_query(iter1.metric_results, query)
+        metrics2 = self._get_metric_values_by_query(iter2.metric_results, query)
 
         for metric_name in set(metrics1.keys()).union(metrics2.keys()):
             value1 = metrics1.get(metric_name, 0.0)
@@ -106,8 +144,11 @@ class StandardComparisonAgent(ComparisonAgent):
             }
 
         # Extract document lists
-        docs1 = iter1.query_results.get(query, {}).get("documents", [])
-        docs2 = iter2.query_results.get(query, {}).get("documents", [])
+        query_result1 = self._get_query_result(iter1, query)
+        query_result2 = self._get_query_result(iter2, query)
+
+        docs1 = query_result1.get("documents", [])
+        docs2 = query_result2.get("documents", [])
 
         # Create position maps for both iterations
         pos_map1 = {doc_id: pos for pos, doc_id in enumerate(docs1)}
@@ -127,16 +168,20 @@ class StandardComparisonAgent(ComparisonAgent):
             }
 
         # Find new documents
-        result["new_documents"] = [
+        # Use a temporary variable with proper typing to avoid mypy errors
+        new_docs: List[Dict[str, Any]] = [
             {"document_id": doc_id, "position": pos_map2[doc_id]}
             for doc_id in set(pos_map2.keys()).difference(set(pos_map1.keys()))
         ]
+        result["new_documents"] = new_docs
 
         # Find removed documents
-        result["removed_documents"] = [
+        # Use a temporary variable with proper typing to avoid mypy errors
+        removed_docs: List[Dict[str, Any]] = [
             {"document_id": doc_id, "previous_position": pos_map1[doc_id]}
             for doc_id in set(pos_map1.keys()).difference(set(pos_map2.keys()))
         ]
+        result["removed_documents"] = removed_docs
 
         return result
 
@@ -159,17 +204,17 @@ class StandardComparisonAgent(ComparisonAgent):
         explanations = []
 
         # Extract results and explain info
-        query_results1 = iter1.query_results.get(query, {})
-        query_results2 = iter2.query_results.get(query, {})
+        query_result1 = self._get_query_result(iter1, query)
+        query_result2 = self._get_query_result(iter2, query)
 
-        docs1 = query_results1.get("documents", [])
-        docs2 = query_results2.get("documents", [])
+        docs1 = query_result1.get("documents", [])
+        docs2 = query_result2.get("documents", [])
 
-        scores1 = query_results1.get("scores", {})
-        scores2 = query_results2.get("scores", {})
+        scores1 = query_result1.get("scores", {})
+        scores2 = query_result2.get("scores", {})
 
-        explain1 = query_results1.get("explain_info", {})
-        explain2 = query_results2.get("explain_info", {})
+        explain1 = query_result1.get("explain_info", {})
+        explain2 = query_result2.get("explain_info", {})
 
         # Create position maps
         pos_map1 = {doc_id: pos for pos, doc_id in enumerate(docs1)}
@@ -199,10 +244,10 @@ class StandardComparisonAgent(ComparisonAgent):
                 "score_change": (scores2.get(doc_id, 0.0) - scores1.get(doc_id, 0.0)),
             }
 
-            # Add explain info if available
-            if doc_id in explain1 and doc_id in explain2:
+            # Add explain info if available - use get() instead of 'in' operator
+            if explain1.get(doc_id) is not None and explain2.get(doc_id) is not None:
                 explanation["explanation"] = self._analyze_explain_differences(
-                    explain1[doc_id], explain2[doc_id]
+                    explain1.get(doc_id), explain2.get(doc_id)
                 )
 
             explanations.append(explanation)
@@ -221,11 +266,9 @@ class StandardComparisonAgent(ComparisonAgent):
                     "score_after": scores2.get(doc_id, 0.0),
                 }
 
-                # Add explain info if available
-                if doc_id in explain2:
-                    explanation["explanation"] = self._summarize_explain_info(
-                        explain2[doc_id]
-                    )
+                # Add explain info if available - use get() instead of 'in' operator
+                if explain2.get(doc_id) is not None:
+                    explanation["explanation"] = self._summarize_explain_info(explain2.get(doc_id))
 
                 explanations.append(explanation)
 
@@ -235,20 +278,14 @@ class StandardComparisonAgent(ComparisonAgent):
             key=lambda x: (
                 float("inf")
                 if x["position_change"] == "new"  # New docs first
-                else (
-                    abs(x["position_change"])
-                    if isinstance(x["position_change"], (int, float))
-                    else 0
-                )
+                else (abs(x["position_change"]) if isinstance(x["position_change"], (int, float)) else 0)
             ),
             reverse=True,
         )
 
         return explanations
 
-    def find_significant_changes(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> List[Dict[str, Any]]:
+    def find_significant_changes(self, iter1: IterationResult, iter2: IterationResult) -> List[Dict[str, Any]]:
         """
         Identify the most significant changes between iterations.
 
@@ -267,13 +304,17 @@ class StandardComparisonAgent(ComparisonAgent):
         # Find significant metric changes
         for metric, delta in metric_deltas.items():
             if abs(delta) >= self.significant_metric_threshold:
+                # Handle metric_results safely
+                overall1 = iter1.metric_results.get("overall", {}) if hasattr(iter1.metric_results, "get") else {}
+                overall2 = iter2.metric_results.get("overall", {}) if hasattr(iter2.metric_results, "get") else {}
+
                 significant_changes.append(
                     {
                         "type": "metric",
                         "metric": metric,
                         "delta": delta,
-                        "before": iter1.metric_results.get("overall", {}).get(metric),
-                        "after": iter2.metric_results.get("overall", {}).get(metric),
+                        "before": overall1.get(metric),
+                        "after": overall2.get(metric),
                     }
                 )
 
@@ -288,9 +329,12 @@ class StandardComparisonAgent(ComparisonAgent):
             if query not in queries1 or query not in queries2:
                 continue
 
-            # Compare per-query metrics
-            metrics1 = iter1.metric_results.get("per_query", {}).get(query, {})
-            metrics2 = iter2.metric_results.get("per_query", {}).get(query, {})
+            # Compare per-query metrics - handle list or dict type
+            per_query1 = iter1.metric_results.get("per_query", {}) if hasattr(iter1.metric_results, "get") else {}
+            per_query2 = iter2.metric_results.get("per_query", {}) if hasattr(iter2.metric_results, "get") else {}
+
+            metrics1 = per_query1.get(query, {}) if hasattr(per_query1, "get") else {}
+            metrics2 = per_query2.get(query, {}) if hasattr(per_query2, "get") else {}
 
             # Find queries with significant metric improvements or degradation
             for metric_name in set(metrics1.keys()).intersection(set(metrics2.keys())):
@@ -311,19 +355,15 @@ class StandardComparisonAgent(ComparisonAgent):
                     )
 
             # Check for ranking changes in top results
-            docs1 = iter1.query_results.get(query, {}).get("documents", [])[
-                : self.analyze_top_n
-            ]
-            docs2 = iter2.query_results.get(query, {}).get("documents", [])[
-                : self.analyze_top_n
-            ]
+            query_result1 = self._get_query_result(iter1, query)
+            query_result2 = self._get_query_result(iter2, query)
+
+            docs1 = query_result1.get("documents", [])[: self.analyze_top_n]
+            docs2 = query_result2.get("documents", [])[: self.analyze_top_n]
 
             # Calculate Jaccard similarity of top results
             jaccard = (
-                len(set(docs1).intersection(set(docs2)))
-                / len(set(docs1).union(set(docs2)))
-                if docs1 or docs2
-                else 1.0
+                len(set(docs1).intersection(set(docs2))) / len(set(docs1).union(set(docs2))) if docs1 or docs2 else 1.0
             )
 
             # If top results are significantly different, report it
@@ -340,9 +380,7 @@ class StandardComparisonAgent(ComparisonAgent):
 
         return significant_changes
 
-    def generate_summary_report(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> Dict[str, Any]:
+    def generate_summary_report(self, iter1: IterationResult, iter2: IterationResult) -> Dict[str, Any]:
         """
         Generate a comprehensive summary report comparing two iterations.
 
@@ -353,7 +391,8 @@ class StandardComparisonAgent(ComparisonAgent):
         Returns:
             Dictionary with summary report information
         """
-        report = {
+        # Initialize with proper typing for MyPy
+        report: Dict[str, Any] = {
             "iteration1_id": iter1.iteration_id,
             "iteration2_id": iter2.iteration_id,
             "metrics_comparison": self.compare_overall_metrics(iter1, iter2),
@@ -367,8 +406,14 @@ class StandardComparisonAgent(ComparisonAgent):
 
         # Get primary metric if available
         primary_metric = None
-        if "overall" in iter1.metric_results and iter1.metric_results["overall"]:
-            primary_metric = next(iter(iter1.metric_results["overall"].keys()))
+        # Handle metric_results that could be a list or dict
+        if hasattr(iter1.metric_results, "get"):  # Check if it's a dict-like object
+            overall_metrics = iter1.metric_results.get("overall", {})
+            if overall_metrics:
+                # Convert to dict explicitly for type checking
+                overall_metrics_dict = dict(overall_metrics)
+                if overall_metrics_dict:
+                    primary_metric = next(iter(overall_metrics_dict.keys()))
 
         # If we don't have a primary metric, we can't categorize queries
         if not primary_metric:
@@ -380,13 +425,21 @@ class StandardComparisonAgent(ComparisonAgent):
         common_queries = queries1.intersection(queries2)
 
         for query in common_queries:
-            # Get query metrics
-            metrics1 = iter1.metric_results.get("per_query", {}).get(query, {})
-            metrics2 = iter2.metric_results.get("per_query", {}).get(query, {})
+            # Get query metrics - handle list or dict type
+            per_query1 = iter1.metric_results.get("per_query", {}) if hasattr(iter1.metric_results, "get") else {}
+            per_query2 = iter2.metric_results.get("per_query", {}) if hasattr(iter2.metric_results, "get") else {}
 
-            if primary_metric in metrics1 and primary_metric in metrics2:
-                value1 = metrics1[primary_metric]
-                value2 = metrics2[primary_metric]
+            query_metrics1 = per_query1.get(query, {}) if hasattr(per_query1, "get") else {}
+            query_metrics2 = per_query2.get(query, {}) if hasattr(per_query2, "get") else {}
+
+            # Convert to dict explicitly for type checking
+            metrics1 = dict(query_metrics1) if query_metrics1 else {}
+            metrics2 = dict(query_metrics2) if query_metrics2 else {}
+
+            # Check if primary_metric exists in metrics using get() instead of 'in' operator
+            if metrics1.get(primary_metric) is not None and metrics2.get(primary_metric) is not None:
+                value1 = metrics1.get(primary_metric, 0.0)
+                value2 = metrics2.get(primary_metric, 0.0)
                 delta = value2 - value1
 
                 query_summary = {
@@ -399,30 +452,36 @@ class StandardComparisonAgent(ComparisonAgent):
                     },
                 }
 
-                # Add details to the right category
+                # Add details to the right category - with proper typing
+                query_summary_typed = cast(QuerySummary, query_summary)
+
                 if delta > self.significant_metric_threshold:
-                    report["improved_queries"].append(query_summary)
+                    report["improved_queries"] = report["improved_queries"] + [query_summary_typed]
                 elif delta < -self.significant_metric_threshold:
-                    report["degraded_queries"].append(query_summary)
+                    report["degraded_queries"] = report["degraded_queries"] + [query_summary_typed]
                 else:
-                    report["unchanged_queries"].append(query_summary)
+                    report["unchanged_queries"] = report["unchanged_queries"] + [query_summary_typed]
 
                 # Add detailed comparison for this query
-                report["query_level_details"][query] = self.compare_query_results(
-                    iter1, iter2, query
-                )
+                report["query_level_details"][query] = self.compare_query_results(iter1, iter2, query)
 
         # Sort the query lists by absolute delta
-        report["improved_queries"].sort(
-            key=lambda x: x["primary_metric"]["delta"], reverse=True
-        )
-        report["degraded_queries"].sort(key=lambda x: x["primary_metric"]["delta"])
+        improved_queries = report["improved_queries"]
+        degraded_queries = report["degraded_queries"]
+
+        # Sort as list and then reassign
+        improved_queries_sorted = sorted(improved_queries, key=lambda x: x["primary_metric"]["delta"], reverse=True)
+        degraded_queries_sorted = sorted(degraded_queries, key=lambda x: x["primary_metric"]["delta"])
+
+        # Use explicit casting to fix the type error
+        from typing import cast
+
+        report["improved_queries"] = cast(List[QuerySummary], improved_queries_sorted)
+        report["degraded_queries"] = cast(List[QuerySummary], degraded_queries_sorted)
 
         return report
 
-    def analyze_config_changes(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> Dict[str, Any]:
+    def analyze_config_changes(self, iter1: IterationResult, iter2: IterationResult) -> Dict[str, Any]:
         """
         Analyze what configuration changes were made between iterations.
 
@@ -435,8 +494,20 @@ class StandardComparisonAgent(ComparisonAgent):
         """
         changes = {}
 
-        config1 = iter1.query_config.dict() if iter1.query_config else {}
-        config2 = iter2.query_config.dict() if iter2.query_config else {}
+        # Convert query_config to dict in a type-safe way
+        config1 = {}
+        if iter1.query_config:
+            try:
+                config1 = dict(iter1.query_config.__dict__)
+            except Exception:
+                config1 = {}
+
+        config2 = {}
+        if iter2.query_config:
+            try:
+                config2 = dict(iter2.query_config.__dict__)
+            except Exception:
+                config2 = {}
 
         # Remove iteration ID and non-relevant fields
         for config in [config1, config2]:
@@ -463,9 +534,7 @@ class StandardComparisonAgent(ComparisonAgent):
 
         return changes
 
-    def _analyze_explain_differences(
-        self, explain1: Dict, explain2: Dict
-    ) -> Dict[str, Any]:
+    def _analyze_explain_differences(self, explain1: Dict, explain2: Dict) -> Dict[str, Any]:
         """
         Analyze the differences between two explain information dictionaries.
 
@@ -498,6 +567,7 @@ class StandardComparisonAgent(ComparisonAgent):
             val1 = components1.get(component, 0)
             val2 = components2.get(component, 0)
 
+            # Use 'in' operator since we're checking dict keys directly
             if component in components1 and component in components2:
                 delta = val2 - val1
                 if abs(delta) > 0.001:  # Only include significant changes
@@ -512,9 +582,7 @@ class StandardComparisonAgent(ComparisonAgent):
             elif component in components2:  # New component
                 result["new_components"].append({"component": component, "value": val2})
             else:  # Removed component
-                result["removed_components"].append(
-                    {"component": component, "value": val1}
-                )
+                result["removed_components"].append({"component": component, "value": val1})
 
         # Sort by abs delta
         r_comp = result["changed_components"]
@@ -536,7 +604,7 @@ class StandardComparisonAgent(ComparisonAgent):
         Returns:
             Dictionary of component description to contribution value
         """
-        components = {}
+        components: Dict[str, float] = {}
 
         # Basic case - just use value if it exists
         if "value" in explain:
@@ -575,14 +643,32 @@ class StandardComparisonAgent(ComparisonAgent):
         components = self._extract_score_components(explain)
 
         # Sort components by absolute contribution
-        sorted_components = sorted(
-            components.items(), key=lambda x: abs(x[1]), reverse=True
-        )
+        sorted_components = sorted(components.items(), key=lambda x: abs(x[1]), reverse=True)
 
         return {
             "score": explain.get("value", 0),
             "top_contributors": [
-                {"component": comp, "value": val}
-                for comp, val in sorted_components[:5]  # Top 5 contributors
+                {"component": comp, "value": val} for comp, val in sorted_components[:5]  # Top 5 contributors
             ],
         }
+
+
+class QuerySummary(TypedDict):
+    """Type definition for query summary dictionaries."""
+
+    query: str
+    primary_metric: Dict[str, Any]
+
+
+class SummaryReport(TypedDict):
+    """Type definition for the summary report dictionary."""
+
+    iteration1_id: str
+    iteration2_id: str
+    metrics_comparison: Dict[str, float]
+    config_changes: Dict[str, Any]
+    significant_changes: List[Dict[str, Any]]
+    improved_queries: List[QuerySummary]
+    degraded_queries: List[QuerySummary]
+    unchanged_queries: List[QuerySummary]
+    query_level_details: Dict[str, Any]

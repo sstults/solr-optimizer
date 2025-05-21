@@ -55,7 +55,9 @@ include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
+line-length = 120
+skip_gitignore = true
 
 [tool.flake8]
-max-line-length = 120  # for Black compatibility
+max-line-length = 120
 extend-ignore = ["E203", "W503"]  # for Black compatibility

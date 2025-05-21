@@ -31,9 +31,7 @@ class LoggingAgent(ABC):
         pass
 
     @abstractmethod
-    def get_iteration(
-        self, experiment_id: str, iteration_id: str
-    ) -> Optional[IterationResult]:
+    def get_iteration(self, experiment_id: str, iteration_id: str) -> Optional[IterationResult]:
         """
         Retrieve a specific iteration result from storage.
 

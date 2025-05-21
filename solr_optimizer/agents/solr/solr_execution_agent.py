@@ -18,9 +18,7 @@ class SolrExecutionAgent(ABC):
     """
 
     @abstractmethod
-    def execute_queries(
-        self, corpus: str, queries: List[str], query_config: QueryConfig
-    ) -> Dict[str, Dict[str, Any]]:
+    def execute_queries(self, corpus: str, queries: List[str], query_config: QueryConfig) -> Dict[str, Dict[str, Any]]:
         """
         Execute a set of queries against the specified Solr collection.
 
@@ -48,9 +46,7 @@ class SolrExecutionAgent(ABC):
         pass
 
     @abstractmethod
-    def get_explain_info(
-        self, corpus: str, query: str, doc_id: str, query_config: QueryConfig
-    ) -> Dict[str, Any]:
+    def get_explain_info(self, corpus: str, query: str, doc_id: str, query_config: QueryConfig) -> Dict[str, Any]:
         """
         Get the Solr explain information for a specific document in a query.
 
@@ -66,9 +62,7 @@ class SolrExecutionAgent(ABC):
         pass
 
     @abstractmethod
-    def execute_streaming_expression(
-        self, corpus: str, expression: str
-    ) -> Dict[str, Any]:
+    def execute_streaming_expression(self, corpus: str, expression: str) -> Dict[str, Any]:
         """
         Execute a Solr streaming expression.
 

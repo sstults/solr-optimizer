@@ -8,17 +8,15 @@ and run iterations with different query configurations.
 import logging
 import os
 import sys
-from typing import Dict, List, Any
 
 # Add the project root to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
-from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
 from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
+from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
+from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.query_config import QueryConfig
-
 
 # Configure logging
 logging.basicConfig(
@@ -72,16 +70,10 @@ class DummyLoggingAgent:
         return self.experiments.get(experiment_id)
 
     def list_experiments(self):
-        return [
-            {"id": exp_id, "corpus": exp.corpus}
-            for exp_id, exp in self.experiments.items()
-        ]
+        return [{"id": exp_id, "corpus": exp.corpus} for exp_id, exp in self.experiments.items()]
 
     def tag_iteration(self, experiment_id, iteration_id, tag):
-        if (
-            experiment_id in self.iterations
-            and iteration_id in self.iterations[experiment_id]
-        ):
+        if experiment_id in self.iterations and iteration_id in self.iterations[experiment_id]:
             # For a real implementation, we'd store the tag
             logger.info(f"Tagged iteration {iteration_id} as '{tag}'")
             return True
@@ -255,9 +247,7 @@ def run_demo():
         # Run baseline iteration
         baseline_result = manager.run_iteration(experiment_id, initial_config)
         logger.info(f"Completed baseline iteration: {baseline_result.iteration_id}")
-        logger.info(
-            f"Baseline metrics: {[m.metric_name + '=' + str(m.value) for m in baseline_result.metric_results]}"
-        )
+        logger.info(f"Baseline metrics: {[m.metric_name + '=' + str(m.value) for m in baseline_result.metric_results]}")
 
         # Generate improved configuration
         improved_config = query_agent.suggest_next_config(baseline_result, schema_info)
@@ -266,9 +256,7 @@ def run_demo():
         # Run improved iteration
         improved_result = manager.run_iteration(experiment_id, improved_config)
         logger.info(f"Completed improved iteration: {improved_result.iteration_id}")
-        logger.info(
-            f"Improved metrics: {[m.metric_name + '=' + str(m.value) for m in improved_result.metric_results]}"
-        )
+        logger.info(f"Improved metrics: {[m.metric_name + '=' + str(m.value) for m in improved_result.metric_results]}")
 
         # Compare iterations
         comparison = manager.compare_iterations(

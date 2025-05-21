@@ -30,9 +30,7 @@ class QueryConfig:
     query_parser: str = "edismax"
     # field -> boost value
     query_fields: Dict[str, float] = field(default_factory=dict)
-    phrase_fields: Dict[str, float] = field(
-        default_factory=dict
-    )  # field -> boost value
+    phrase_fields: Dict[str, float] = field(default_factory=dict)  # field -> boost value
     boost_queries: List[str] = field(default_factory=list)
     boost_functions: List[str] = field(default_factory=list)
     minimum_match: Optional[str] = None
@@ -51,15 +49,11 @@ class QueryConfig:
 
         # Query fields (qf)
         if self.query_fields:
-            params["qf"] = " ".join(
-                [f"{field}^{boost}" for field, boost in self.query_fields.items()]
-            )
+            params["qf"] = " ".join([f"{field}^{boost}" for field, boost in self.query_fields.items()])
 
         # Phrase fields (pf)
         if self.phrase_fields:
-            params["pf"] = " ".join(
-                [f"{field}^{boost}" for field, boost in self.phrase_fields.items()]
-            )
+            params["pf"] = " ".join([f"{field}^{boost}" for field, boost in self.phrase_fields.items()])
 
         # Boost queries (bq)
         if self.boost_queries:

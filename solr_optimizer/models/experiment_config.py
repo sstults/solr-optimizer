@@ -43,20 +43,15 @@ class ExperimentConfig:
         # Ensure all queries have judgments
         missing_queries = [q for q in self.queries if q not in self.judgments]
         if missing_queries:
-            raise ValueError(
-                f"Missing judgments for queries: {', '.join(missing_queries)}"
-            )
+            raise ValueError(f"Missing judgments for queries: {', '.join(missing_queries)}")
 
         # Validate primary metric
         valid_metrics = {"ndcg", "precision", "recall", "mrr", "err", "dcg"}
         if self.primary_metric.lower() not in valid_metrics:
             raise ValueError(
-                f"Invalid primary_metric: '{self.primary_metric}'. "
-                f"Must be one of: {', '.join(valid_metrics)}"
+                f"Invalid primary_metric: '{self.primary_metric}'. " f"Must be one of: {', '.join(valid_metrics)}"
             )
 
         # Validate metric depth
         if self.metric_depth <= 0:
-            raise ValueError(
-                f"metric_depth must be positive, got " f"{self.metric_depth}"
-            )
+            raise ValueError(f"metric_depth must be positive, got " f"{self.metric_depth}")

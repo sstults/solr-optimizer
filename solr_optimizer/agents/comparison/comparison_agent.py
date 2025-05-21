@@ -18,9 +18,7 @@ class ComparisonAgent(ABC):
     """
 
     @abstractmethod
-    def compare_overall_metrics(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> Dict[str, float]:
+    def compare_overall_metrics(self, iter1: IterationResult, iter2: IterationResult) -> Dict[str, float]:
         """
         Compare the overall metrics between two iterations.
 
@@ -34,9 +32,7 @@ class ComparisonAgent(ABC):
         pass
 
     @abstractmethod
-    def compare_query_results(
-        self, iter1: IterationResult, iter2: IterationResult, query: str
-    ) -> Dict[str, Any]:
+    def compare_query_results(self, iter1: IterationResult, iter2: IterationResult, query: str) -> Dict[str, Any]:
         """
         Compare the results for a specific query between two iterations.
 
@@ -70,9 +66,7 @@ class ComparisonAgent(ABC):
         pass
 
     @abstractmethod
-    def find_significant_changes(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> List[Dict[str, Any]]:
+    def find_significant_changes(self, iter1: IterationResult, iter2: IterationResult) -> List[Dict[str, Any]]:
         """
         Identify the most significant changes between iterations.
 
@@ -86,9 +80,7 @@ class ComparisonAgent(ABC):
         pass
 
     @abstractmethod
-    def generate_summary_report(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> Dict[str, Any]:
+    def generate_summary_report(self, iter1: IterationResult, iter2: IterationResult) -> Dict[str, Any]:
         """
         Generate a comprehensive summary report comparing two iterations.
 
@@ -102,9 +94,7 @@ class ComparisonAgent(ABC):
         pass
 
     @abstractmethod
-    def analyze_config_changes(
-        self, iter1: IterationResult, iter2: IterationResult
-    ) -> Dict[str, Any]:
+    def analyze_config_changes(self, iter1: IterationResult, iter2: IterationResult) -> Dict[str, Any]:
         """
         Analyze what configuration changes were made between iterations.
 

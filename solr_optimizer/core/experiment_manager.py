@@ -34,9 +34,7 @@ class ExperimentManager(ABC):
         pass
 
     @abstractmethod
-    def run_iteration(
-        self, experiment_id: str, query_config: QueryConfig
-    ) -> IterationResult:
+    def run_iteration(self, experiment_id: str, query_config: QueryConfig) -> IterationResult:
         """
         Run a single iteration with the given query configuration.
 
@@ -50,9 +48,7 @@ class ExperimentManager(ABC):
         pass
 
     @abstractmethod
-    def compare_iterations(
-        self, experiment_id: str, iteration_id1: str, iteration_id2: str
-    ) -> Dict:
+    def compare_iterations(self, experiment_id: str, iteration_id1: str, iteration_id2: str) -> Dict:
         """
         Compare two iterations of the same experiment.
 

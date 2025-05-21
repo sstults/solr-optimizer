@@ -14,7 +14,7 @@ from solr_optimizer.agents.comparison.standard_comparison_agent import (
 )
 from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
 from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
-from solr_optimizer.agents.query.query_tuning_agent import QueryTuningAgent
+from solr_optimizer.agents.query.dummy_query_tuning_agent import DummyQueryTuningAgent
 from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
 from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
 from solr_optimizer.core.experiment_manager import ExperimentManager
@@ -46,9 +46,8 @@ def create_experiment_manager(solr_url: str, storage_dir: str) -> ExperimentMana
     logging_agent = FileBasedLoggingAgent(storage_dir)
     comparison_agent = StandardComparisonAgent()
 
-    # We only use a dummy QueryTuningAgent for now - this will be enhanced in
-    # future phases
-    query_tuning_agent = QueryTuningAgent()
+    # Create query tuning agent
+    query_tuning_agent = DummyQueryTuningAgent()
 
     # Create and return the experiment manager
     return DefaultExperimentManager(
@@ -108,10 +107,7 @@ def load_judgments_from_csv(filepath: str) -> Dict[str, Dict[str, float]]:
             reader = csv.DictReader(csvfile)
             required_fields = ["query", "document_id", "relevance"]
             if not all(field in reader.fieldnames for field in required_fields):
-                raise ValueError(
-                    f"CSV file must have 'query', 'document_id', "
-                    f"and 'relevance' columns: {filepath}"
-                )
+                raise ValueError(f"CSV file must have 'query', 'document_id', " f"and 'relevance' columns: {filepath}")
 
             for row in reader:
                 query = row["query"].strip()
@@ -119,10 +115,7 @@ def load_judgments_from_csv(filepath: str) -> Dict[str, Dict[str, float]]:
                 try:
                     relevance = float(row["relevance"])
                 except ValueError:
-                    logger.warning(
-                        f"Invalid relevance value for {doc_id}: "
-                        f"{row['relevance']}, using 0.0"
-                    )
+                    logger.warning(f"Invalid relevance value for {doc_id}: " f"{row['relevance']}, using 0.0")
                     relevance = 0.0
 
                 if query not in judgments:
@@ -164,10 +157,7 @@ def load_judgments_from_trec(filepath: str) -> Dict[str, Dict[str, float]]:
                 try:
                     relevance = float(parts[3])
                 except ValueError:
-                    logger.warning(
-                        f"Invalid relevance value for {doc_id}: {parts[3]}, "
-                        f"using 0.0"
-                    )
+                    logger.warning(f"Invalid relevance value for {doc_id}: {parts[3]}, " f"using 0.0")
                     relevance = 0.0
 
                 # We use the query ID as a placeholder until we can map it to
@@ -187,4 +177,64 @@ def load_judgments_from_trec(filepath: str) -> Dict[str, Dict[str, float]]:
     return judgments
 
 
-# Rest of the file remains the same (truncated for brevity)
+def main():
+    """
+    Main CLI entry point for Solr Optimizer.
+
+    Parses command-line arguments and executes the appropriate command.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Solr Optimizer CLI")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Run command
+    run_parser = subparsers.add_parser("run", help="Run a full experiment")
+    run_parser.add_argument("--solr-url", required=True, help="URL of the Solr server")
+    run_parser.add_argument("--storage-dir", required=True, help="Directory for storing experiment data")
+    run_parser.add_argument("--queries", help="Path to CSV file containing queries")
+    run_parser.add_argument("--judgments", help="Path to CSV/TREC file containing relevance judgments")
+
+    # Optimize command
+    optimize_parser = subparsers.add_parser("optimize", help="Optimize Solr queries")
+    optimize_parser.add_argument("--solr-url", required=True, help="URL of the Solr server")
+    optimize_parser.add_argument("--queries", required=True, help="Path to CSV file containing queries")
+    optimize_parser.add_argument(
+        "--judgments",
+        required=True,
+        help="Path to CSV/TREC file containing relevance judgments",
+    )
+    optimize_parser.add_argument("--output-dir", required=True, help="Directory to save optimized configurations")
+    optimize_parser.add_argument("--iterations", type=int, default=10, help="Number of optimization iterations")
+
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+
+    args = parser.parse_args()
+
+    setup_logging(args.verbose)
+
+    # Create experiment manager
+    experiment_manager = create_experiment_manager(
+        args.solr_url,
+        args.storage_dir if hasattr(args, "storage_dir") else args.output_dir,
+    )
+
+    # Load queries if provided
+    if hasattr(args, "queries") and args.queries is not None:
+        queries = load_queries_from_csv(args.queries)
+        experiment_manager.set_queries(queries)
+
+    # Load judgments if provided
+    if hasattr(args, "judgments") and args.judgments is not None:
+        # Try both formats
+        try:
+            judgments: Dict[str, Dict[str, float]] = load_judgments_from_csv(args.judgments)
+        except ValueError:
+            judgments: Dict[str, Dict[str, float]] = load_judgments_from_trec(args.judgments)
+        experiment_manager.set_judgments(judgments)
+
+    # Execute the appropriate command
+    if args.command == "run":
+        experiment_manager.run()
+    elif args.command == "optimize":
+        experiment_manager.optimize(iterations=args.iterations)
