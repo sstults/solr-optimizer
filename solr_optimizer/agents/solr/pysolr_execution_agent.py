@@ -33,11 +33,11 @@ class PySolrExecutionAgent(SolrExecutionAgent):
             timeout: Connection timeout in seconds
             always_commit: Whether to always commit after write operations
         """
-        self.base_url = solr_url.rstrip("/")
+        self.solr_url = solr_url.rstrip("/")
         self.timeout = timeout
         self.always_commit = always_commit
         self.solr_clients: Dict[str, pysolr.Solr] = {}  # Cache for Solr clients by collection
-        logger.info(f"Initialized PySolrExecutionAgent with base URL: " f"{self.base_url}")
+        logger.info(f"Initialized PySolrExecutionAgent with base URL: " f"{self.solr_url}")
 
     def _get_client(self, collection: str) -> pysolr.Solr:
         """
@@ -50,7 +50,7 @@ class PySolrExecutionAgent(SolrExecutionAgent):
             A PySolr client for the collection
         """
         if collection not in self.solr_clients:
-            collection_url = f"{self.base_url}/{collection}"
+            collection_url = f"{self.solr_url}/{collection}"
             self.solr_clients[collection] = pysolr.Solr(
                 collection_url, timeout=self.timeout, always_commit=self.always_commit
             )
@@ -68,47 +68,33 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         Returns:
             Dictionary mapping query string to query results
         """
+        if not queries:
+            return {}
+            
         client = self._get_client(corpus)
         results = {}
 
-        # Convert query_config to Solr params
-        params = query_config.to_solr_params()
+        # Handle None query_config
+        if query_config is None:
+            params = {}
+        else:
+            # Convert query_config to Solr params
+            params = query_config.to_solr_params()
 
         # Add debug info if needed for explain
+        params["debug"] = "true"
         params["debugQuery"] = "true"
-        params["debug.explain.structured"] = "true"
 
         for query in queries:
             logger.debug(f"Executing query: {query} with params: {params}")
 
-            try:
-                response = client.search(query, **params)
+            response = client.search(query, **params)
 
-                # Extract document IDs and scores
-                documents = [doc["id"] for doc in response.docs]
-                scores = {doc["id"]: doc.get("score", 0.0) for doc in response.docs}
-
-                # Extract explain info if available
-                explain_info = {}
-                if hasattr(response, "debug") and "explain" in response.debug:
-                    explain_info = response.debug["explain"]
-
-                results[query] = {
-                    "documents": documents,
-                    "scores": scores,
-                    "explain_info": explain_info,
-                    "total_results": response.hits,
-                    "qtime": response.qtime if hasattr(response, "qtime") else None,
-                }
-
-            except Exception as e:
-                logger.error(f"Error executing query {query}: {str(e)}")
-                results[query] = {
-                    "documents": [],
-                    "scores": {},
-                    "explain_info": {},
-                    "error": str(e),
-                }
+            results[query] = {
+                "docs": response.docs,
+                "numFound": response.hits,
+                "responseTime": response.qtime if hasattr(response, "qtime") else None,
+            }
 
         return results
 
@@ -122,15 +108,9 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         Returns:
             Schema information as a dictionary
         """
-        schema_url = f"{self.base_url}/{corpus}/schema"
-
-        try:
-            response = requests.get(schema_url)
-            response.raise_for_status()
-            return response.json().get("schema", {})
-        except Exception as e:
-            logger.error(f"Error fetching schema for {corpus}: {str(e)}")
-            return {}
+        client = self._get_client(corpus)
+        
+        return client._send_request('get', 'schema')
 
     def get_explain_info(self, corpus: str, query: str, doc_id: str, query_config: QueryConfig) -> Dict[str, Any]:
         """
@@ -147,22 +127,16 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         """
         client = self._get_client(corpus)
         params = query_config.to_solr_params()
+        params["debug"] = "true"
         params["debugQuery"] = "true"
-        params["debug.explain.structured"] = "true"
 
-        try:
-            response = client.search(query, **params)
+        response = client.search(query, **params)
 
-            if hasattr(response, "debug") and "explain" in response.debug:
-                # Find the explanation for the specific document
-                if doc_id in response.debug["explain"]:
-                    return response.debug["explain"][doc_id]
+        if hasattr(response, "debug"):
+            return response.debug
 
-            logger.warning(f"No explain info found for document {doc_id}")
-            return {}
-        except Exception as e:
-            logger.error(f"Error getting explain info: {str(e)}")
-            return {}
+        logger.warning(f"No explain info found for document {doc_id}")
+        return {}
 
     def execute_streaming_expression(self, corpus: str, expression: str) -> Dict[str, Any]:
         """
@@ -175,19 +149,9 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         Returns:
             The results of the streaming expression
         """
-        streaming_url = f"{self.base_url}/{corpus}/stream"
-
-        try:
-            response = requests.post(
-                streaming_url,
-                data=json.dumps({"expr": expression}),
-                headers={"Content-Type": "application/json"},
-            )
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            logger.error(f"Error executing streaming expression: {str(e)}")
-            return {"error": str(e)}
+        client = self._get_client(corpus)
+        
+        return client._send_request('post', 'stream', body={"expr": expression})
 
     def ping(self) -> bool:
         """
@@ -196,12 +160,10 @@ class PySolrExecutionAgent(SolrExecutionAgent):
         Returns:
             True if the server is reachable, False otherwise
         """
-        admin_url = f"{self.base_url}/admin/ping"
-
         try:
-            response = requests.get(admin_url)
-            response.raise_for_status()
-            return response.status_code == 200
+            # Use a temporary client for ping - create one for the base collection
+            temp_client = pysolr.Solr(f"{self.solr_url}/admin/cores", timeout=self.timeout)
+            return temp_client.ping()
         except Exception:
             logger.warning("Failed to ping Solr server")
             return False

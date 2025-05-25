@@ -24,7 +24,7 @@ from solr_optimizer.agents.comparison.standard_comparison_agent import (
 )
 from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
 from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetricsAgent
-from solr_optimizer.agents.query.query_tuning_agent import QueryTuningAgent
+from solr_optimizer.agents.query.dummy_query_tuning_agent import DummyQueryTuningAgent
 from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
 from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
@@ -103,7 +103,7 @@ def run_experiment(solr_url, storage_dir, corpus_name):
     metrics_agent = StandardMetricsAgent()
     logging_agent = FileBasedLoggingAgent(storage_dir)
     comparison_agent = StandardComparisonAgent()
-    query_tuning_agent = QueryTuningAgent()  # This is a placeholder implementation
+    query_tuning_agent = DummyQueryTuningAgent()  # This is a placeholder implementation
 
     experiment_manager = DefaultExperimentManager(
         query_tuning_agent=query_tuning_agent,

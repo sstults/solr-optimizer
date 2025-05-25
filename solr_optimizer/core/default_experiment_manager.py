@@ -6,6 +6,7 @@ This module provides a concrete implementation of the ExperimentManager
 interface that coordinates the workflow between different agents.
 """
 
+import copy
 import logging
 import uuid
 from typing import Dict, List, Optional
@@ -70,21 +71,26 @@ class DefaultExperimentManager(ExperimentManager):
         # Store queries for potential overrides
         self.current_queries = config.queries
         
-        # Generate ID if not provided
-        if not config.experiment_id:
-            config.experiment_id = f"exp-{uuid.uuid4().hex[:8]}"
+        # Always generate a new unique ID for each experiment
+        experiment_id = f"exp-{uuid.uuid4().hex[:8]}"
+        
+        # Create a copy of the config with the new experiment ID
+        # to avoid modifying the original config object
+        import copy
+        experiment_config = copy.deepcopy(config)
+        experiment_config.experiment_id = experiment_id
 
         # Validate configuration
         # (ExperimentConfig's __post_init__ already handles basic validation)
 
         # Save experiment configuration
-        success = self.logging_agent.save_experiment(config)
+        success = self.logging_agent.save_experiment(experiment_config)
 
         if not success:
-            raise RuntimeError(f"Failed to save experiment: " f"{config.experiment_id}")
+            raise RuntimeError(f"Failed to save experiment: " f"{experiment_id}")
 
-        logger.info(f"Created new experiment: {config.experiment_id}")
-        return config.experiment_id
+        logger.info(f"Created new experiment: {experiment_id}")
+        return experiment_id
 
     def run_iteration(self, experiment_id: str, query_config: QueryConfig) -> IterationResult:
         """

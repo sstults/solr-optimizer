@@ -103,10 +103,14 @@ class StandardComparisonAgent(ComparisonAgent):
             return dict(query_result)
 
         # If it's a QueryResult object, extract its attributes
+        explain_info = getattr(query_result, "explain_info", None)
+        if explain_info is None:
+            explain_info = {}
+            
         return {
             "documents": list(getattr(query_result, "documents", [])),
             "scores": dict(getattr(query_result, "scores", {})),
-            "explain_info": dict(getattr(query_result, "explain_info", {})),
+            "explain_info": dict(explain_info),
         }
 
     def compare_query_results(self, iter1: IterationResult, iter2: IterationResult, query: str) -> Dict[str, Any]:

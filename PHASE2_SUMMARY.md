@@ -72,7 +72,7 @@ The CLI was significantly enhanced with proper argument handling and support for
 Example usage:
 ```bash
 # Create a new experiment
-solr-optimizer create-experiment --corpus products --queries-csv queries.csv --judgments-csv judgments.csv --metric ndcg --depth 10
+solr-optimizer create-experiment --name "Search Optimization" --corpus products --queries-csv queries.csv --judgments-csv judgments.csv --metric ndcg --depth 10
 
 # Run an iteration with custom parameters
 solr-optimizer run-iteration --experiment-id exp-12345 --qf "title^2.0 description^1.0" --pf "title^1.5"
@@ -81,73 +81,11 @@ solr-optimizer run-iteration --experiment-id exp-12345 --qf "title^2.0 descripti
 solr-optimizer compare-iterations --experiment-id exp-12345 --iteration1 iter-1 --iteration2 iter-2
 ```
 
-### Experiment Manager Workflow Enhancements
+### Bug Fixes
 
-The Experiment Manager was enhanced to support:
+- **Fixed import error** in `examples/experiment_workflow_demo.py` where it was incorrectly importing the abstract `QueryTuningAgent` instead of `DummyQueryTuningAgent`
 
-- **Experiment state management** for tracking progress
-- **Iteration history** with detailed record keeping
-- **Inter-agent communication** for seamless workflow
-
-### New Examples and Documentation
-
-- **Comprehensive workflow example** in `examples/experiment_workflow_demo.py`
-- **CLI documentation** with command reference and usage examples
-
-## Using the New Features
-
-### File-Based Logging Agent
-
-```python
-from solr_optimizer.agents.logging.file_based_logging_agent import FileBasedLoggingAgent
-
-# Initialize the agent with storage directory
-logging_agent = FileBasedLoggingAgent("experiment_storage")
-
-# Tag an important iteration
-logging_agent.tag_iteration(experiment_id, iteration_id, "best_performer")
-
-# Export an experiment to a file
-logging_agent.export_experiment(experiment_id, "experiment_backup.json")
-
-# Create a branch of an experiment
-branch_id = logging_agent.branch_experiment(experiment_id, name="Parameter tuning branch")
-```
-
-### Comparison Agent
-
-```python
-from solr_optimizer.agents.comparison.standard_comparison_agent import StandardComparisonAgent
-
-# Initialize the agent with custom thresholds
-comparison_agent = StandardComparisonAgent(
-    significant_metric_threshold=0.05,
-    significant_rank_change=3
-)
-
-# Generate a comprehensive comparison report
-report = comparison_agent.generate_summary_report(iteration1, iteration2)
-
-# Analyze ranking changes for a specific query
-changes = comparison_agent.explain_ranking_changes(iteration1, iteration2, "search query")
-```
-
-### Command Line Interface
-
-The enhanced CLI can be used directly as a command-line tool:
-
-```bash
-# Create a new experiment
-solr-optimizer create-experiment --corpus products --queries-csv queries.csv --judgments-csv judgments.csv
-
-# List all experiments
-solr-optimizer list-experiments
-
-# Compare iterations
-solr-optimizer compare-iterations --experiment-id exp-12345 --iteration1 iter-1 --iteration2 iter-2
-```
-
-## Architecture Updates
+## Architecture Status
 
 The core architecture established in Phase 1 has been enhanced with the new components:
 
@@ -165,42 +103,60 @@ Metrics Agent       ←→  Evaluation & Results
 Logging Agent       ←→  Comparison Agent
 ```
 
-Each agent now has a well-defined interface and at least one concrete implementation:
+Each agent now has a well-defined interface and working concrete implementations:
 
 1. **Experiment Manager**: Orchestrates workflow and maintains state (DefaultExperimentManager)
-2. **Query Tuning Agent**: Generates query configurations (placeholder implementation)
+2. **Query Tuning Agent**: Generates query configurations (DummyQueryTuningAgent - placeholder implementation)
 3. **Solr Execution Agent**: Interfaces with SolrCloud to run queries (PySolrExecutionAgent)
 4. **Metrics Agent**: Calculates relevance metrics (StandardMetricsAgent)
 5. **Logging Agent**: Records experiment history (FileBasedLoggingAgent)
 6. **Comparison Agent**: Analyzes differences between iterations (StandardComparisonAgent)
 
+## What Was NOT Completed in Phase 2
+
+### Specialized AI Agents (Not Implemented)
+
+The following specialized AI agents mentioned in planning documents were **not implemented**:
+- Query Optimization Orchestrator
+- Schema Analysis Agent using MCP with Pydantic AI
+- Analysis Chain Agent for tokenization optimization
+- Query Rewriting Agent for query reformulation
+- Parameter Tuning Agent for DisMax/eDisMax optimization
+- Learning-to-Rank Agent for ML models
+
+These remain as future work and should be prioritized in subsequent phases.
+
+### Advanced Features Still Missing
+
+- Database storage options (only file-based logging implemented)
+- Visualization dashboard or integration with external tools
+- Machine learning-based optimization strategies
+- Reinforcement learning optimization framework
+- Learning-to-Rank integration
+
 ## Next Steps
 
-With Phase 2 complete, the following steps are recommended for Phase 3:
+With Phase 2 core components complete, the following steps are recommended for Phase 3:
 
-1. **Complete Query Optimization Agents**:
-   - Implement specialized AI agents using MCP with Pydantic AI:
-     - Query Optimization Orchestrator
-     - Schema Analysis Agent
-     - Analysis Chain Agent
-     - Query Rewriting Agent
-     - Parameter Tuning Agent
-     - Learning-to-Rank Agent
+1. **Implement Specialized AI Agents**:
+   - Research and implement MCP with Pydantic AI integration
+   - Create the Query Optimization Orchestrator
+   - Develop domain-specific optimization agents
 
 2. **Data Models and Storage**:
-   - Enhance the persistence layer with database storage options
+   - Add database storage options alongside file-based storage
    - Implement caching for better performance
    - Develop versioning system for experiments and configurations
 
-3. **Visualization Layer**:
+3. **Documentation and Testing**:
+   - Expand API reference documentation
+   - Create comprehensive test suite
+   - Add integration tests for the CLI
+
+4. **Visualization Layer**:
    - Evaluate visualization frameworks
    - Design dashboard layouts
-   - Implement metric charts and comparisons
-
-4. **Documentation**:
-   - Expand API reference documentation
-   - Create tutorials for common use cases
-   - Add developer guides for extending the framework
+   - Implement basic metric charts and comparisons
 
 ## Getting Started
 
@@ -211,13 +167,13 @@ To test the current implementation:
    ```bash
    pip install -e .
    ```
-3. Run the example:
+3. Use the CLI to create experiments:
    ```bash
-   python examples/experiment_workflow_demo.py
+   solr-optimizer create-experiment --name "Test" --corpus collection1 --queries-csv queries.csv --judgments-csv judgments.csv
    ```
 
-Note that the example requires a running Solr instance. You may need to set the `SOLR_URL` and `SOLR_COLLECTION` environment variables to match your setup.
+Note that the implementation requires a running Solr instance. You may need to set appropriate Solr URL and collection parameters.
 
 ## Conclusion
 
-Phase 2 has successfully implemented core components of the Solr Optimizer project, with particular focus on logging, comparison, and command-line interface. The architecture is now more robust, with concrete implementations of key components and enhanced workflow capabilities. The project is ready to move forward with more advanced features in Phase 3.
+Phase 2 has successfully implemented the core infrastructure components of the Solr Optimizer project, with particular focus on logging, comparison, and command-line interface. The architecture is now robust with concrete implementations of key components and enhanced workflow capabilities. However, the advanced AI optimization agents remain as future work. The project is ready to move forward with specialized agent implementation and advanced features in Phase 3.

@@ -9,6 +9,7 @@ directory.
 import datetime
 import json
 import logging
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -106,7 +107,7 @@ class FileBasedLoggingAgent(LoggingAgent):
             path.parent.mkdir(parents=True, exist_ok=True)
 
             with open(path, "w") as f:
-                json.dump(data, f, indent=2)
+                json.dump(data, f, indent=2, default=str)  # Convert non-serializable objects to strings
             return True
         except Exception as e:
             logger.error(f"Error writing JSON to {path}: {e}")
@@ -157,10 +158,12 @@ class FileBasedLoggingAgent(LoggingAgent):
         self._update_index(experiment_id, metadata={"last_iteration": iteration_id})
 
         # Prepare iteration data for storage
-        iteration_data = iteration_result.model_dump()
+        iteration_data = asdict(iteration_result)
 
-        # Record timestamp if not already present
-        if "timestamp" not in iteration_data:
+        # Convert datetime to ISO format string if present
+        if "timestamp" in iteration_data and hasattr(iteration_data["timestamp"], "isoformat"):
+            iteration_data["timestamp"] = iteration_data["timestamp"].isoformat()
+        elif "timestamp" not in iteration_data:
             iteration_data["timestamp"] = datetime.datetime.now().isoformat()
 
         # Write iteration data
@@ -186,6 +189,15 @@ class FileBasedLoggingAgent(LoggingAgent):
         iteration_data = self._read_json(iteration_path)
 
         try:
+            # Convert timestamp string back to datetime if needed
+            if "timestamp" in iteration_data and isinstance(iteration_data["timestamp"], str):
+                try:
+                    from datetime import datetime
+                    iteration_data["timestamp"] = datetime.fromisoformat(iteration_data["timestamp"].replace('Z', '+00:00'))
+                except ValueError:
+                    # If parsing fails, keep as string
+                    pass
+            
             return IterationResult(**iteration_data)
         except Exception as e:
             logger.error(f"Error deserializing iteration {iteration_id}: {e}")
@@ -229,12 +241,11 @@ class FileBasedLoggingAgent(LoggingAgent):
                 }
 
             # Add primary metric if available
-            if "metric_results" in iteration_data and "overall" in iteration_data["metric_results"]:
-                metrics = iteration_data["metric_results"]["overall"]
-                if metrics:
-                    # Just include the first metric for the summary
-                    first_metric = next(iter(metrics.items()))
-                    summary["metric"] = {first_metric[0]: first_metric[1]}
+            if "metric_results" in iteration_data and iteration_data["metric_results"]:
+                # Handle list of metric results
+                if isinstance(iteration_data["metric_results"], list) and iteration_data["metric_results"]:
+                    first_metric = iteration_data["metric_results"][0]
+                    summary["metric"] = {first_metric.get("metric_name", "unknown"): first_metric.get("value", 0)}
 
             # Add tags if available
             tags_data = self._read_json(self._get_tags_path(experiment_id))
@@ -258,36 +269,40 @@ class FileBasedLoggingAgent(LoggingAgent):
         Returns:
             True if saving was successful, False otherwise
         """
-        experiment_id = experiment.experiment_id
+        try:
+            experiment_id = experiment.experiment_id
 
-        # Create experiment directory if it doesn't exist
-        experiment_dir = self._get_experiment_dir(experiment_id)
-        experiment_dir.mkdir(parents=True, exist_ok=True)
+            # Create experiment directory if it doesn't exist
+            experiment_dir = self._get_experiment_dir(experiment_id)
+            experiment_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create iterations directory
-        iterations_dir = self._get_iterations_dir(experiment_id)
-        iterations_dir.mkdir(exist_ok=True)
+            # Create iterations directory
+            iterations_dir = self._get_iterations_dir(experiment_id)
+            iterations_dir.mkdir(exist_ok=True)
 
-        # Create empty tags file if it doesn't exist
-        tags_path = self._get_tags_path(experiment_id)
-        if not tags_path.exists():
-            self._write_json(tags_path, {})
+            # Create empty tags file if it doesn't exist
+            tags_path = self._get_tags_path(experiment_id)
+            if not tags_path.exists():
+                self._write_json(tags_path, {})
 
-        # Update the experiment index
-        self._update_index(
-            experiment_id,
-            name=experiment.name or experiment_id,
-            metadata={
-                "corpus": experiment.corpus,
-                "primary_metric": experiment.primary_metric,
-                "num_queries": len(experiment.queries),
-                "description": experiment.description,
-            },
-        )
+            # Update the experiment index
+            self._update_index(
+                experiment_id,
+                name=experiment_id,  # ExperimentConfig doesn't have a name field
+                metadata={
+                    "corpus": experiment.corpus,
+                    "primary_metric": experiment.primary_metric,
+                    "num_queries": len(experiment.queries),
+                    "description": experiment.description,
+                },
+            )
 
-        # Write experiment configuration
-        config_path = self._get_experiment_config_path(experiment_id)
-        return self._write_json(config_path, experiment.dict())
+            # Write experiment configuration
+            config_path = self._get_experiment_config_path(experiment_id)
+            return self._write_json(config_path, asdict(experiment))
+        except Exception as e:
+            logger.error(f"Error saving experiment {experiment.experiment_id}: {e}")
+            return False
 
     def get_experiment(self, experiment_id: str) -> Optional[ExperimentConfig]:
         """
@@ -307,7 +322,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         config_data = self._read_json(config_path)
 
         try:
-            return ExperimentConfig(**config_data.model_dump())
+            return ExperimentConfig(**config_data)
         except Exception as e:
             logger.error(f"Error deserializing experiment {experiment_id}: {e}")
             return None
@@ -392,20 +407,13 @@ class FileBasedLoggingAgent(LoggingAgent):
         new_id = (
             new_experiment_id or f"{source_experiment_id}-branch-" f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
         )
-        branched_experiment = ExperimentConfig(
-            **{
-                **source_experiment.model_dump(),
-                "experiment_id": new_id,
-                "name": name or f"Branch of {source_experiment_id}",
-            }
-        )
-
-        # Add branch metadata
-        branched_experiment.metadata = {
-            **(branched_experiment.metadata or {}),
-            "branched_from": source_experiment_id,
-            "branched_at": datetime.datetime.now().isoformat(),
-        }
+        
+        # Create the branched experiment data
+        branched_data = asdict(source_experiment)
+        branched_data["experiment_id"] = new_id
+        # Don't set 'name' field since ExperimentConfig doesn't have it
+        
+        branched_experiment = ExperimentConfig(**branched_data)
 
         # Save the new experiment
         success = self.save_experiment(branched_experiment)
@@ -447,7 +455,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         """
         export_data = {
             "experiment_id": experiment_id,
-            "config": (self.get_experiment(experiment_id).model_dump() if self.get_experiment(experiment_id) else None),
+            "config": (asdict(self.get_experiment(experiment_id)) if self.get_experiment(experiment_id) else None),
             "iterations": {},
             "tags": self._read_json(self._get_tags_path(experiment_id)),
             "export_date": datetime.datetime.now().isoformat(),
@@ -463,7 +471,7 @@ class FileBasedLoggingAgent(LoggingAgent):
         # Write the export file
         try:
             with open(target_path, "w") as f:
-                json.dump(export_data, f, indent=2)
+                json.dump(export_data, f, indent=2, default=str)
             return True
         except Exception as e:
             logger.error(f"Error exporting experiment to {target_path}: {e}")
