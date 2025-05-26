@@ -114,3 +114,37 @@ class IterationResult:
             "metric_deltas": self.metric_deltas,
             "query_count": len(self.query_results),
         }
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert the iteration result to a dictionary for serialization.
+
+        Returns:
+            Dictionary representation of the iteration result
+        """
+        return {
+            "iteration_id": self.iteration_id,
+            "experiment_id": self.experiment_id,
+            "query_config": self.query_config.__dict__,
+            "query_results": {
+                query: {
+                    "query": result.query,
+                    "documents": result.documents,
+                    "scores": result.scores,
+                    "explain_info": result.explain_info
+                }
+                for query, result in self.query_results.items()
+            },
+            "metric_results": [
+                {
+                    "metric_name": metric.metric_name,
+                    "value": metric.value,
+                    "per_query": metric.per_query
+                }
+                for metric in self.metric_results
+            ],
+            "timestamp": self.timestamp.isoformat(),
+            "compared_to": self.compared_to,
+            "metric_deltas": self.metric_deltas,
+            "notes": self.notes
+        }

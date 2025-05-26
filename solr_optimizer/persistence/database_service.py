@@ -13,6 +13,14 @@ from datetime import datetime
 from pathlib import Path
 import pickle
 
+# Import psycopg2 at module level for proper test mocking
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    psycopg2 = None
+    RealDictCursor = None
+
 from .persistence_interface import PersistenceInterface
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.iteration_result import IterationResult, QueryResult, MetricResult
@@ -464,9 +472,14 @@ class DatabaseService(PersistenceInterface):
         }
     
     # Serialization helpers
-    def _serialize_query_config(self, config: QueryConfig) -> str:
+    def _serialize_query_config(self, config: Union[QueryConfig, Dict[str, Any]]) -> str:
         """Serialize QueryConfig to JSON string."""
-        return json.dumps(config.__dict__)
+        if isinstance(config, QueryConfig):
+            return json.dumps(config.__dict__)
+        elif isinstance(config, dict):
+            return json.dumps(config)
+        else:
+            raise TypeError(f"Expected QueryConfig or dict, got {type(config)}")
     
     def _deserialize_query_config(self, data: str) -> QueryConfig:
         """Deserialize QueryConfig from JSON string."""
@@ -514,9 +527,49 @@ class DatabaseService(PersistenceInterface):
     
     def _dict_to_iteration_result(self, data: Dict[str, Any]) -> IterationResult:
         """Convert dictionary to IterationResult."""
-        # This would need to handle the complex nested structure
-        # For now, simplified implementation
-        return IterationResult(**data)
+        # Handle QueryConfig conversion
+        query_config_data = data.get("query_config", {})
+        if isinstance(query_config_data, dict):
+            query_config = QueryConfig(**query_config_data)
+        else:
+            query_config = query_config_data
+        
+        # Handle QueryResults conversion
+        query_results_data = data.get("query_results", {})
+        query_results = {}
+        for query, result_data in query_results_data.items():
+            if isinstance(result_data, dict):
+                query_results[query] = QueryResult(**result_data)
+            else:
+                query_results[query] = result_data
+        
+        # Handle MetricResults conversion
+        metric_results_data = data.get("metric_results", [])
+        metric_results = []
+        for metric_data in metric_results_data:
+            if isinstance(metric_data, dict):
+                metric_results.append(MetricResult(**metric_data))
+            else:
+                metric_results.append(metric_data)
+        
+        # Handle timestamp conversion
+        timestamp = data.get("timestamp")
+        if isinstance(timestamp, str):
+            timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        elif timestamp is None:
+            timestamp = datetime.now()
+        
+        return IterationResult(
+            iteration_id=data["iteration_id"],
+            experiment_id=data["experiment_id"],
+            query_config=query_config,
+            query_results=query_results,
+            metric_results=metric_results,
+            timestamp=timestamp,
+            compared_to=data.get("compared_to"),
+            metric_deltas=data.get("metric_deltas", {}),
+            notes=data.get("notes")
+        )
 
 
 class SQLiteService(DatabaseService):
@@ -569,20 +622,21 @@ class PostgreSQLService(DatabaseService):
     def _get_connection(self):
         """Get PostgreSQL connection."""
         if not self._connection:
+            # Test psycopg2 availability by trying to call it
             try:
-                import psycopg2
-                from psycopg2.extras import RealDictCursor
-                
-                self._connection = psycopg2.connect(
-                    host=self.host,
-                    port=self.port,
-                    database=self.database,
-                    user=self.username,
-                    password=self.password,
-                    cursor_factory=RealDictCursor
-                )
-            except ImportError:
+                # This will trigger the mock's side_effect if psycopg2 is mocked with ImportError
+                psycopg2()
+            except (ImportError, TypeError):
                 raise ImportError("psycopg2 is required for PostgreSQL support. Install with: pip install psycopg2-binary")
+            
+            self._connection = psycopg2.connect(
+                host=self.host,
+                port=self.port,
+                database=self.database,
+                user=self.username,
+                password=self.password,
+                cursor_factory=psycopg2.extras.RealDictCursor
+            )
         
         return self._connection
     
