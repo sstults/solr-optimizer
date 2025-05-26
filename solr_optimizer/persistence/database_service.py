@@ -15,10 +15,10 @@ import pickle
 
 # Import psycopg2 at module level for proper test mocking
 try:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
+    import psycopg2  # type: ignore[import-untyped]
+    from psycopg2.extras import RealDictCursor  # type: ignore[import-untyped]
 except ImportError:
-    psycopg2 = None
+    psycopg2 = None  # type: ignore[assignment]
     RealDictCursor = None
 
 from .persistence_interface import PersistenceInterface
@@ -622,11 +622,8 @@ class PostgreSQLService(DatabaseService):
     def _get_connection(self):
         """Get PostgreSQL connection."""
         if not self._connection:
-            # Test psycopg2 availability by trying to call it
-            try:
-                # This will trigger the mock's side_effect if psycopg2 is mocked with ImportError
-                psycopg2()
-            except (ImportError, TypeError):
+            # Test psycopg2 availability
+            if psycopg2 is None:
                 raise ImportError("psycopg2 is required for PostgreSQL support. Install with: pip install psycopg2-binary")
             
             self._connection = psycopg2.connect(
@@ -635,7 +632,7 @@ class PostgreSQLService(DatabaseService):
                 database=self.database,
                 user=self.username,
                 password=self.password,
-                cursor_factory=psycopg2.extras.RealDictCursor
+                cursor_factory=RealDictCursor
             )
         
         return self._connection
