@@ -9,7 +9,7 @@
   <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
   
   <!-- Text field type with standard analysis chain -->
-  <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+  <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
     <analyzer type="index">
       <tokenizer class="solr.StandardTokenizerFactory"/>
       <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
@@ -45,6 +45,10 @@
     <field name="product_brand" type="string" indexed="true" stored="true"/>
     <field name="product_color" type="string" indexed="true" stored="true"/>
     <field name="product_locale" type="string" indexed="true" stored="true"/>
+    
+    <!-- Additional product fields -->
+    <field name="category" type="string" indexed="true" stored="true"/>
+    <field name="price" type="pfloat" indexed="true" stored="true"/>
     
     <!-- Query information (for analysis) -->
     <field name="query" type="text_general" indexed="true" stored="true"/>

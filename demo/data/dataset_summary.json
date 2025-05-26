@@ -2,24 +2,24 @@
   "dataset_info": {
     "total_products": 10000,
     "total_queries": 75,
-    "total_judgments": 2670,
-    "avg_judgments_per_query": 35.6
+    "total_judgments": 2850,
+    "avg_judgments_per_query": 38.0
   },
   "product_categories": {
-    "Electronics": 2046,
-    "Clothing": 2017,
-    "Sports & Outdoors": 2006,
-    "Books": 1993,
-    "Home & Kitchen": 1938
+    "Clothing": 2059,
+    "Electronics": 2015,
+    "Sports & Outdoors": 2002,
+    "Home & Kitchen": 1995,
+    "Books": 1929
   },
   "judgment_distribution": {
-    "1": 1303,
-    "0": 750,
-    "2": 617
+    "1": 1345,
+    "2": 755,
+    "0": 750
   },
   "price_statistics": {
-    "min_price": 10.04,
-    "max_price": 1999.63,
-    "avg_price": 385.3315509999999
+    "min_price": 10.12,
+    "max_price": 1999.87,
+    "avg_price": 388.6126180000003
   }
 }

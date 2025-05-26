@@ -1,3 +1,158 @@
 {
-  "experiments": {}
+  "experiments": {
+    "exp-5b9a9dd6": {
+      "name": "exp-5b9a9dd6",
+      "created_at": "2025-05-26T03:12:04.258474",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null
+      },
+      "last_modified": "2025-05-26T03:12:04.258489"
+    },
+    "exp-7809e817": {
+      "name": "exp-7809e817",
+      "created_at": "2025-05-26T03:13:38.128895",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null
+      },
+      "last_modified": "2025-05-26T03:13:38.128950"
+    },
+    "exp-10c6047e": {
+      "name": "exp-10c6047e",
+      "created_at": "2025-05-26T03:14:43.324564",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:14:49.104693"
+    },
+    "exp-ae099b51": {
+      "name": "exp-ae099b51",
+      "created_at": "2025-05-26T03:15:12.936066",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:15:17.895459"
+    },
+    "exp-6456475e": {
+      "name": "exp-6456475e",
+      "created_at": "2025-05-26T03:15:50.487247",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:15:55.498284"
+    },
+    "exp-c44bcaed": {
+      "name": "exp-c44bcaed",
+      "created_at": "2025-05-26T03:16:30.047439",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:16:35.101606"
+    },
+    "exp-89ccd5ae": {
+      "name": "exp-89ccd5ae",
+      "created_at": "2025-05-26T03:17:18.077609",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:17:22.859677"
+    },
+    "exp-06f06aa8": {
+      "name": "exp-06f06aa8",
+      "created_at": "2025-05-26T03:27:06.032080",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:27:11.778483"
+    },
+    "exp-65ca2c75": {
+      "name": "exp-65ca2c75",
+      "created_at": "2025-05-26T03:40:47.758986",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:40:53.181055"
+    },
+    "exp-ccd1484e": {
+      "name": "exp-ccd1484e",
+      "created_at": "2025-05-26T03:43:15.515782",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:43:20.539497"
+    },
+    "exp-bdca0a8d": {
+      "name": "exp-bdca0a8d",
+      "created_at": "2025-05-26T03:44:45.593004",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:44:50.523948"
+    },
+    "exp-edf19533": {
+      "name": "exp-edf19533",
+      "created_at": "2025-05-26T03:45:31.457970",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:45:36.334170"
+    },
+    "exp-fc830723": {
+      "name": "exp-fc830723",
+      "created_at": "2025-05-26T03:46:06.309940",
+      "metadata": {
+        "corpus": "ecommerce_products",
+        "primary_metric": "ndcg",
+        "num_queries": 20,
+        "description": null,
+        "last_iteration": "advanced_optimization"
+      },
+      "last_modified": "2025-05-26T03:46:11.178326"
+    }
+  }
 }

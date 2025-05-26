@@ -156,10 +156,12 @@ class SolrDataLoader:
                     "id": product["id"],
                     "product_title": product["product_title"],
                     "product_description": product["product_description"],
-                    "product_bullet_point": product["product_bullet_point"],
+                    "product_bullet_point": product["product_bullet_point"] if isinstance(product["product_bullet_point"], list) else [product["product_bullet_point"]],
                     "product_brand": product["product_brand"],
                     "product_color": product["product_color"],
-                    "product_locale": product["product_locale"]
+                    "product_locale": product["product_locale"],
+                    "category": product.get("category", ""),
+                    "price": product.get("price", 0.0)
                 }
                 solr_docs.append(doc)
             

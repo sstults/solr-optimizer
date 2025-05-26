@@ -54,13 +54,23 @@ check_service() {
     local service_name=$1
     local port=$2
     local timeout=${3:-60}
+    local service_type=${4:-http}
     local count=0
     
     echo "   Checking $service_name on port $port..."
     while [ $count -lt $timeout ]; do
-        if curl -s "http://localhost:$port" > /dev/null 2>&1; then
-            echo "   ✅ $service_name is ready"
-            return 0
+        if [ "$service_type" = "zookeeper" ]; then
+            # Check Zookeeper using the 'ruok' command
+            if echo "ruok" | nc -w 2 localhost $port 2>/dev/null | grep -q "imok"; then
+                echo "   ✅ $service_name is ready"
+                return 0
+            fi
+        else
+            # Check HTTP services
+            if curl -s "http://localhost:$port" > /dev/null 2>&1; then
+                echo "   ✅ $service_name is ready"
+                return 0
+            fi
         fi
         sleep 2
         count=$((count + 2))
@@ -71,9 +81,9 @@ check_service() {
 }
 
 # Check Zookeeper ensemble
-check_service "Zookeeper-1" 2181 60
-check_service "Zookeeper-2" 2182 60  
-check_service "Zookeeper-3" 2183 60
+check_service "Zookeeper-1" 2181 60 zookeeper
+check_service "Zookeeper-2" 2182 60 zookeeper
+check_service "Zookeeper-3" 2183 60 zookeeper
 
 # Check Solr nodes
 check_service "Solr-1" 8983 120
@@ -84,13 +94,33 @@ check_service "Solr-3" 8985 60
 echo "⏳ Waiting for collection creation..."
 sleep 10
 
+# Create the ecommerce_products collection
+echo "🔧 Creating ecommerce_products collection..."
+
+# First upload the configset
+echo "   📤 Uploading configset to Zookeeper..."
+$DOCKER_COMPOSE exec -T solr1 solr zk upconfig -n ecommerce_products -d /docker-entrypoint-initdb.d/configsets/ecommerce -z zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+
+# Wait a moment for the configset to be available
+sleep 3
+
+# Create the collection
+echo "   🏗️  Creating collection with custom configset..."
+if curl -s -X POST "http://localhost:8983/solr/admin/collections?action=CREATE&name=ecommerce_products&numShards=2&replicationFactor=2&collection.configName=ecommerce_products" | grep -q '"status":0'; then
+    echo "   ✅ Collection 'ecommerce_products' created successfully with custom configset"
+else
+    echo "   ⚠️  Failed to create collection with custom configset, falling back to default..."
+    # Fallback to default configset
+    curl -s -X POST "http://localhost:8983/solr/admin/collections?action=CREATE&name=ecommerce_products&numShards=1&replicationFactor=1&collection.configName=_default" >/dev/null 2>&1
+    echo "   ✅ Collection 'ecommerce_products' created with default configset"
+fi
+
 # Verify collection was created
 echo "🔍 Verifying ecommerce_products collection..."
 if curl -s "http://localhost:8983/solr/admin/collections?action=LIST" | grep -q "ecommerce_products"; then
-    echo "   ✅ Collection 'ecommerce_products' created successfully"
+    echo "   ✅ Collection is available and ready"
 else
-    echo "   ⚠️  Collection may not be ready yet, checking status..."
-    curl -s "http://localhost:8983/solr/admin/collections?action=CLUSTERSTATUS&wt=json" | python3 -m json.tool || true
+    echo "   ❌ Collection creation failed"
 fi
 
 # Show cluster status

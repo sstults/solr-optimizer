@@ -69,7 +69,7 @@ services:
       - solr-network
     command: >
       bash -c "
-        solr-precreate ecommerce_products /docker-entrypoint-initdb.d/configsets/ecommerce -z zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
+        solr start -cloud -z zookeeper1:2181,zookeeper2:2181,zookeeper3:2181 -h solr1 -p 8983 -f
       "
 
   solr2:

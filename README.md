@@ -127,6 +127,28 @@ solr-optimizer branch-experiment \
 solr-optimizer export-experiment \
     --experiment-id exp-12345 \
     --output experiment-backup.json
+
+# AI-Powered Commands
+
+# Get AI optimization recommendations
+solr-optimizer ai-recommend \
+    --experiment-id exp-12345 \
+    --ai-model openai:gpt-4 \
+    --constraints max_risk=low focus=parameters
+
+# Preview AI recommendations before applying
+solr-optimizer ai-preview \
+    --experiment-id exp-12345 \
+    --ai-model openai:gpt-4
+
+# Run AI-optimized iteration automatically
+solr-optimizer ai-optimize \
+    --experiment-id exp-12345 \
+    --ai-model openai:gpt-4 \
+    --constraints min_confidence=0.8
+
+# Check AI system status and configuration
+solr-optimizer ai-status --ai-model openai:gpt-4
 ```
 
 ### Python API

@@ -1,0 +1,206 @@
+{
+  "iteration_id": "baseline",
+  "experiment_id": "exp-c44bcaed",
+  "query_config": {
+    "query_parser": "lucene",
+    "query_fields": {},
+    "phrase_fields": {},
+    "boost_queries": [],
+    "boost_functions": [],
+    "minimum_match": null,
+    "tie_breaker": 0.0,
+    "iteration_id": "baseline",
+    "additional_params": {
+      "df": "product_title",
+      "rows": 10
+    }
+  },
+  "query_results": {
+    "expensive tablet": {
+      "query": "expensive tablet",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "jacket": {
+      "query": "jacket",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "cheap shoes": {
+      "query": "cheap shoes",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "blue laptop": {
+      "query": "blue laptop",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "professional camera": {
+      "query": "professional camera",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "red laptop": {
+      "query": "red laptop",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "expensive bag": {
+      "query": "expensive bag",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "wireless headphones": {
+      "query": "wireless headphones",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "electronics": {
+      "query": "electronics",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "white camera": {
+      "query": "white camera",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "levi's bag": {
+      "query": "levi's bag",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "professional shirt": {
+      "query": "professional shirt",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "headphones": {
+      "query": "headphones",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "sports & outdoors": {
+      "query": "sports & outdoors",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "samsung phone": {
+      "query": "samsung phone",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "expensive shoes": {
+      "query": "expensive shoes",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "watch": {
+      "query": "watch",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    },
+    "white laptop": {
+      "query": "white laptop",
+      "documents": [],
+      "scores": {},
+      "explain_info": {}
+    }
+  },
+  "metric_results": [
+    {
+      "metric_name": "ndcg@10",
+      "value": 0.0,
+      "per_query": {
+        "expensive tablet": 0.0,
+        "jacket": 0.0,
+        "cheap shoes": 0.0,
+        "blue laptop": 0.0,
+        "professional camera": 0.0,
+        "red laptop": 0.0,
+        "expensive bag": 0.0,
+        "wireless headphones": 0.0,
+        "electronics": 0.0,
+        "white camera": 0.0,
+        "levi's bag": 0.0,
+        "professional shirt": 0.0,
+        "headphones": 0.0,
+        "sports & outdoors": 0.0,
+        "samsung phone": 0.0,
+        "expensive shoes": 0.0,
+        "watch": 0.0,
+        "white laptop": 0.0
+      }
+    },
+    {
+      "metric_name": "precision@10",
+      "value": 0.0,
+      "per_query": {
+        "expensive tablet": 0.0,
+        "jacket": 0.0,
+        "cheap shoes": 0.0,
+        "blue laptop": 0.0,
+        "professional camera": 0.0,
+        "red laptop": 0.0,
+        "expensive bag": 0.0,
+        "wireless headphones": 0.0,
+        "electronics": 0.0,
+        "white camera": 0.0,
+        "levi's bag": 0.0,
+        "professional shirt": 0.0,
+        "headphones": 0.0,
+        "sports & outdoors": 0.0,
+        "samsung phone": 0.0,
+        "expensive shoes": 0.0,
+        "watch": 0.0,
+        "white laptop": 0.0
+      }
+    },
+    {
+      "metric_name": "recall@10",
+      "value": 0.0,
+      "per_query": {
+        "expensive tablet": 0.0,
+        "jacket": 0.0,
+        "cheap shoes": 0.0,
+        "blue laptop": 0.0,
+        "professional camera": 0.0,
+        "red laptop": 0.0,
+        "expensive bag": 0.0,
+        "wireless headphones": 0.0,
+        "electronics": 0.0,
+        "white camera": 0.0,
+        "levi's bag": 0.0,
+        "professional shirt": 0.0,
+        "headphones": 0.0,
+        "sports & outdoors": 0.0,
+        "samsung phone": 0.0,
+        "expensive shoes": 0.0,
+        "watch": 0.0,
+        "white laptop": 0.0
+      }
+    }
+  ],
+  "timestamp": "2025-05-26T03:16:30.490511",
+  "compared_to": null,
+  "metric_deltas": {},
+  "notes": null
+}

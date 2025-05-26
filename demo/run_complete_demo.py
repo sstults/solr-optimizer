@@ -47,7 +47,7 @@ class CompleteDemoOrchestrator:
         logger.info("🔧 Setting up experiment manager...")
         
         # Initialize agents
-        solr_agent = PySolrExecutionAgent(base_url=self.solr_url)
+        solr_agent = PySolrExecutionAgent(solr_url=self.solr_url)
         metrics_agent = StandardMetricsAgent()
         logging_agent = FileBasedLoggingAgent()
         comparison_agent = StandardComparisonAgent()
@@ -130,19 +130,19 @@ class CompleteDemoOrchestrator:
         
         # Default query configuration (basic search)
         baseline_config = QueryConfig(
-            request_handler="/select",
-            query_params={
-                "defType": "lucene",
-                "df": "searchable_text",
+            iteration_id="baseline",
+            query_parser="lucene",
+            additional_params={
+                "df": "product_title",
                 "rows": 10
             }
         )
         
-        iteration_id = self.experiment_manager.run_iteration(
+        iteration_result = self.experiment_manager.run_iteration(
             experiment_id=self.experiment_id,
-            query_config=baseline_config,
-            iteration_name="baseline"
+            query_config=baseline_config
         )
+        iteration_id = iteration_result.iteration_id
         
         logger.info(f"✅ Baseline iteration completed: {iteration_id}")
         return iteration_id
@@ -153,22 +153,30 @@ class CompleteDemoOrchestrator:
         
         # Improved query configuration using DisMax
         optimized_config = QueryConfig(
-            request_handler="/dismax",
-            query_params={
-                "defType": "dismax",
-                "qf": "product_title^2.0 product_description^1.0 product_bullet_point^1.5 product_brand^1.2",
-                "pf": "product_title^3.0 product_description^1.5",
-                "mm": "2<-1 5<-2 6<90%",
-                "tie": 0.01,
+            iteration_id="basic_optimization",
+            query_parser="dismax",
+            query_fields={
+                "product_title": 2.0,
+                "product_description": 1.0,
+                "product_bullet_point": 1.5,
+                "product_brand": 1.2
+            },
+            phrase_fields={
+                "product_title": 3.0,
+                "product_description": 1.5
+            },
+            minimum_match="2<-1 5<-2 6<90%",
+            tie_breaker=0.01,
+            additional_params={
                 "rows": 10
             }
         )
         
-        iteration_id = self.experiment_manager.run_iteration(
+        iteration_result = self.experiment_manager.run_iteration(
             experiment_id=self.experiment_id,
-            query_config=optimized_config,
-            iteration_name="basic_optimization"
+            query_config=optimized_config
         )
+        iteration_id = iteration_result.iteration_id
         
         logger.info(f"✅ Basic optimization iteration completed: {iteration_id}")
         return iteration_id
@@ -179,25 +187,33 @@ class CompleteDemoOrchestrator:
         
         # Advanced query configuration using eDisMax
         advanced_config = QueryConfig(
-            request_handler="/edismax",
-            query_params={
-                "defType": "edismax",
-                "qf": "product_title^3.0 product_description^1.0 product_bullet_point^2.0 product_brand^1.5 all_text^0.5",
-                "pf": "product_title^5.0 product_description^2.0",
+            iteration_id="advanced_optimization",
+            query_parser="edismax",
+            query_fields={
+                "product_title": 3.0,
+                "product_description": 1.0,
+                "product_bullet_point": 2.0,
+                "product_brand": 1.5
+            },
+            phrase_fields={
+                "product_title": 5.0,
+                "product_description": 2.0
+            },
+            minimum_match="3<-1 6<-2 8<75%",
+            tie_breaker=0.1,
+            additional_params={
                 "pf2": "product_title^4.0 product_description^1.5",
                 "pf3": "product_title^3.0 product_description^1.0",
-                "mm": "3<-1 6<-2 8<75%",
-                "tie": 0.1,
                 "boost": "if(exists(product_brand),1.2,1.0)",
                 "rows": 10
             }
         )
         
-        iteration_id = self.experiment_manager.run_iteration(
+        iteration_result = self.experiment_manager.run_iteration(
             experiment_id=self.experiment_id,
-            query_config=advanced_config,
-            iteration_name="advanced_optimization"
+            query_config=advanced_config
         )
+        iteration_id = iteration_result.iteration_id
         
         logger.info(f"✅ Advanced optimization iteration completed: {iteration_id}")
         return iteration_id
@@ -208,8 +224,8 @@ class CompleteDemoOrchestrator:
         
         comparison = self.experiment_manager.compare_iterations(
             experiment_id=self.experiment_id,
-            iteration1=iteration1,
-            iteration2=iteration2
+            iteration_id1=iteration1,
+            iteration_id2=iteration2
         )
         
         self._display_comparison_results(comparison, iteration1, iteration2)
@@ -281,34 +297,58 @@ class CompleteDemoOrchestrator:
         """Show the complete experiment history."""
         logger.info("📋 Showing experiment history...")
         
-        iterations = self.experiment_manager.list_iterations(self.experiment_id)
-        
-        print(f"\n{'='*60}")
-        print(f"📈 EXPERIMENT HISTORY: {self.experiment_id}")
-        print('='*60)
-        
-        for iteration in iterations:
-            iteration_data = self.experiment_manager.get_iteration_result(
-                self.experiment_id, iteration
-            )
+        try:
+            iterations = self.experiment_manager.get_iteration_history(self.experiment_id)
             
-            metrics = iteration_data.get('metrics', {}).get('overall', {})
-            primary_metric = metrics.get('ndcg', 0) if metrics else 0
+            print(f"\n{'='*60}")
+            print(f"📈 EXPERIMENT HISTORY: {self.experiment_id}")
+            print('='*60)
             
-            print(f"\n🔄 {iteration}:")
-            print(f"  NDCG@10: {primary_metric:.3f}")
-            
-            if 'query_config' in iteration_data:
-                config = iteration_data['query_config']
-                handler = config.get('request_handler', 'unknown')
-                print(f"  Handler: {handler}")
-                
-                if 'query_params' in config:
-                    params = config['query_params']
-                    if 'qf' in params:
-                        print(f"  Query Fields: {params['qf']}")
-                    if 'mm' in params:
-                        print(f"  Min Should Match: {params['mm']}")
+            if isinstance(iterations, list) and iterations:
+                for iteration_result in iterations:
+                    if hasattr(iteration_result, 'metric_results'):
+                        # Handle both MetricResult objects and dict data from JSON
+                        primary_metric_value = 0
+                        if iteration_result.metric_results:
+                            first_metric = iteration_result.metric_results[0]
+                            if hasattr(first_metric, 'value'):
+                                # It's a MetricResult object
+                                primary_metric_value = first_metric.value
+                            elif isinstance(first_metric, dict):
+                                # It's loaded from JSON as a dict
+                                primary_metric_value = first_metric.get('value', 0)
+                        
+                        print(f"\n🔄 {iteration_result.iteration_id}:")
+                        print(f"  NDCG@10: {primary_metric_value:.3f}")
+                        
+                        config = iteration_result.query_config
+                        # Handle both QueryConfig objects and dict data from JSON
+                        if hasattr(config, 'query_parser'):
+                            # It's a QueryConfig object
+                            parser = config.query_parser
+                            query_fields = config.query_fields
+                            minimum_match = config.minimum_match
+                        elif isinstance(config, dict):
+                            # It's loaded from JSON as a dict
+                            parser = config.get('query_parser', 'unknown')
+                            query_fields = config.get('query_fields', {})
+                            minimum_match = config.get('minimum_match', None)
+                        else:
+                            parser = 'unknown'
+                            query_fields = {}
+                            minimum_match = None
+                            
+                        print(f"  Parser: {parser}")
+                        
+                        if query_fields:
+                            qf_str = " ".join([f"{field}^{boost}" for field, boost in query_fields.items()])
+                            print(f"  Query Fields: {qf_str}")
+                        if minimum_match:
+                            print(f"  Min Should Match: {minimum_match}")
+            else:
+                print("  No iteration history available")
+        except Exception as e:
+            print(f"  Error retrieving iteration history: {e}")
         
         print('='*60)
     

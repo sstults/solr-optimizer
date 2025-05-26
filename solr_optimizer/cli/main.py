@@ -21,6 +21,7 @@ from solr_optimizer.agents.metrics.standard_metrics_agent import StandardMetrics
 from solr_optimizer.agents.query.dummy_query_tuning_agent import DummyQueryTuningAgent
 from solr_optimizer.agents.solr.pysolr_execution_agent import PySolrExecutionAgent
 from solr_optimizer.core.default_experiment_manager import DefaultExperimentManager
+from solr_optimizer.core.ai_experiment_manager import AIExperimentManager
 from solr_optimizer.models.experiment_config import ExperimentConfig
 from solr_optimizer.models.query_config import QueryConfig
 
@@ -34,16 +35,20 @@ def setup_logging(verbose: bool = False) -> None:
     logging.basicConfig(level=log_level, format=log_format)
 
 
-def create_experiment_manager(solr_url: str, storage_dir: str) -> DefaultExperimentManager:
+def create_experiment_manager(solr_url: str, storage_dir: str, enable_ai: bool = False, 
+                             ai_model: str = "openai:gpt-4", ai_config: Optional[Dict] = None) -> DefaultExperimentManager:
     """
     Create and configure an experiment manager with all required agents.
 
     Args:
         solr_url: URL of the Solr server
         storage_dir: Directory for storing experiment data
+        enable_ai: Whether to enable AI-powered optimization
+        ai_model: AI model to use for optimization
+        ai_config: Additional AI configuration parameters
 
     Returns:
-        Configured DefaultExperimentManager instance
+        Configured DefaultExperimentManager or AIExperimentManager instance
     """
     # Initialize agents
     solr_agent = PySolrExecutionAgent(solr_url)
@@ -52,14 +57,26 @@ def create_experiment_manager(solr_url: str, storage_dir: str) -> DefaultExperim
     comparison_agent = StandardComparisonAgent()
     query_tuning_agent = DummyQueryTuningAgent()
 
-    # Create and return the experiment manager
-    return DefaultExperimentManager(
-        query_tuning_agent=query_tuning_agent,
-        solr_execution_agent=solr_agent,
-        metrics_agent=metrics_agent,
-        logging_agent=logging_agent,
-        comparison_agent=comparison_agent,
-    )
+    # Create appropriate experiment manager based on AI settings
+    if enable_ai:
+        return AIExperimentManager(
+            query_tuning_agent=query_tuning_agent,
+            solr_execution_agent=solr_agent,
+            metrics_agent=metrics_agent,
+            logging_agent=logging_agent,
+            comparison_agent=comparison_agent,
+            ai_model=ai_model,
+            ai_config=ai_config or {},
+            enable_ai=True,
+        )
+    else:
+        return DefaultExperimentManager(
+            query_tuning_agent=query_tuning_agent,
+            solr_execution_agent=solr_agent,
+            metrics_agent=metrics_agent,
+            logging_agent=logging_agent,
+            comparison_agent=comparison_agent,
+        )
 
 
 def load_queries_from_csv(filepath: str) -> List[str]:
@@ -383,6 +400,193 @@ def cmd_branch_experiment(args) -> None:
     print(f"Created branch: {branch_id}")
 
 
+def cmd_ai_recommend(args) -> None:
+    """Get AI-powered optimization recommendation for an experiment."""
+    setup_logging(args.verbose)
+    
+    # Parse constraints if provided
+    constraints = {}
+    if args.constraints:
+        for constraint in args.constraints:
+            key, value = constraint.split('=', 1)
+            constraints[key] = value
+    
+    # Create AI-enabled experiment manager
+    experiment_manager = create_experiment_manager(
+        args.solr_url, args.storage_dir, enable_ai=True, 
+        ai_model=args.ai_model, ai_config={}
+    )
+    
+    if not isinstance(experiment_manager, AIExperimentManager):
+        print("Error: AI functionality not available")
+        return
+    
+    # Get AI recommendation
+    recommendation = experiment_manager.get_ai_recommendation(args.experiment_id, constraints)
+    
+    if not recommendation:
+        print("No AI recommendation available. Check that:")
+        print("  - The experiment exists")
+        print("  - AI model is properly configured")
+        print("  - There is sufficient experiment history")
+        return
+    
+    print("AI Optimization Recommendation")
+    print("=" * 40)
+    print(f"Confidence: {recommendation.confidence:.2f}")
+    print(f"Risk Level: {recommendation.risk_level}")
+    print(f"Priority: {recommendation.priority}/10")
+    print(f"Expected Impact: {recommendation.expected_impact}")
+    print()
+    print("Reasoning:")
+    print(f"  {recommendation.reasoning}")
+    print()
+    print("Suggested Changes:")
+    for key, value in recommendation.suggested_changes.items():
+        print(f"  {key}: {value}")
+
+
+def cmd_ai_preview(args) -> None:
+    """Preview AI optimization recommendation without executing it."""
+    setup_logging(args.verbose)
+    
+    # Parse constraints if provided
+    constraints = {}
+    if args.constraints:
+        for constraint in args.constraints:
+            key, value = constraint.split('=', 1)
+            constraints[key] = value
+    
+    # Create AI-enabled experiment manager
+    experiment_manager = create_experiment_manager(
+        args.solr_url, args.storage_dir, enable_ai=True, 
+        ai_model=args.ai_model, ai_config={}
+    )
+    
+    if not isinstance(experiment_manager, AIExperimentManager):
+        print("Error: AI functionality not available")
+        return
+    
+    # Get AI recommendation preview
+    preview = experiment_manager.preview_ai_recommendation(args.experiment_id, constraints)
+    
+    if not preview:
+        print("No AI recommendation preview available.")
+        return
+    
+    print("AI Optimization Preview")
+    print("=" * 30)
+    print(f"Confidence: {preview['confidence']:.2f}")
+    print(f"Risk Level: {preview['risk_level']}")
+    print(f"Priority: {preview['priority']}/10")
+    print(f"Expected Impact: {preview['expected_impact']}")
+    print()
+    print("Reasoning:")
+    print(f"  {preview['reasoning']}")
+    print()
+    
+    if preview['preview_query_config']:
+        config = preview['preview_query_config']
+        print("Generated Query Configuration:")
+        print(f"  Iteration ID: {config.iteration_id}")
+        print(f"  Description: {config.description}")
+        print(f"  Query Parser: {config.query_parser}")
+        if config.qf:
+            print(f"  Query Fields (qf): {config.qf}")
+        if config.pf:
+            print(f"  Phrase Fields (pf): {config.pf}")
+        if config.mm:
+            print(f"  Minimum Match (mm): {config.mm}")
+        if config.boost:
+            print(f"  Boost: {config.boost}")
+        if config.additional_params:
+            print("  Additional Parameters:")
+            for key, value in config.additional_params.items():
+                print(f"    {key}: {value}")
+
+
+def cmd_ai_optimize(args) -> None:
+    """Run AI-optimized iteration for an experiment."""
+    setup_logging(args.verbose)
+    
+    # Parse constraints if provided
+    constraints = {}
+    if args.constraints:
+        for constraint in args.constraints:
+            key, value = constraint.split('=', 1)
+            constraints[key] = value
+    
+    # Create AI-enabled experiment manager
+    experiment_manager = create_experiment_manager(
+        args.solr_url, args.storage_dir, enable_ai=True, 
+        ai_model=args.ai_model, ai_config={}
+    )
+    
+    if not isinstance(experiment_manager, AIExperimentManager):
+        print("Error: AI functionality not available")
+        return
+    
+    # Run AI-optimized iteration
+    result = experiment_manager.run_ai_optimized_iteration(args.experiment_id, constraints)
+    
+    if not result:
+        print("AI optimization failed. Check logs for details.")
+        return
+    
+    print(f"AI-optimized iteration completed: {result.iteration_id}")
+    
+    # Show AI metadata if available
+    if result.metadata and result.metadata.get('ai_generated'):
+        print("AI Optimization Details:")
+        print(f"  Model: {result.metadata.get('ai_model', 'Unknown')}")
+        print(f"  Confidence: {result.metadata.get('ai_confidence', 0.0):.2f}")
+        print(f"  Risk Level: {result.metadata.get('ai_risk_level', 'Unknown')}")
+        print(f"  Reasoning: {result.metadata.get('ai_reasoning', 'No reasoning available')}")
+        print()
+    
+    # Show metric results
+    if hasattr(result.metric_results, 'get') and result.metric_results.get('overall'):
+        print("Metric Results:")
+        for metric, value in result.metric_results['overall'].items():
+            print(f"  {metric}: {value:.4f}")
+        
+        # Show improvement if available
+        if result.metric_deltas:
+            print("Improvements vs Previous:")
+            for metric, delta in result.metric_deltas.items():
+                print(f"  {metric}: {delta:+.4f}")
+
+
+def cmd_ai_status(args) -> None:
+    """Show AI system status and configuration."""
+    setup_logging(args.verbose)
+    
+    # Create AI-enabled experiment manager
+    experiment_manager = create_experiment_manager(
+        args.solr_url, args.storage_dir, enable_ai=True, 
+        ai_model=args.ai_model, ai_config={}
+    )
+    
+    if not isinstance(experiment_manager, AIExperimentManager):
+        print("AI functionality is not available")
+        return
+    
+    status = experiment_manager.get_ai_status()
+    
+    print("AI System Status")
+    print("=" * 20)
+    print(f"AI Enabled: {status['ai_enabled']}")
+    print(f"AI Model: {status['ai_model']}")
+    print(f"Orchestrator Available: {status['orchestrator_available']}")
+    
+    if status['ai_config']:
+        print("AI Configuration:")
+        for key, value in status['ai_config'].items():
+            print(f"  {key}: {value}")
+    else:
+        print("AI Configuration: Default settings")
+
+
 def main() -> None:
     """Main CLI entry point for Solr Optimizer."""
     parser = argparse.ArgumentParser(
@@ -468,6 +672,33 @@ def main() -> None:
     branch_parser.add_argument("--experiment-id", required=True, help="Source experiment ID")
     branch_parser.add_argument("--name", required=True, help="Branch name")
     branch_parser.set_defaults(func=cmd_branch_experiment)
+    
+    # AI commands
+    # ai-recommend command
+    ai_recommend_parser = subparsers.add_parser("ai-recommend", help="Get AI optimization recommendations")
+    ai_recommend_parser.add_argument("--experiment-id", required=True, help="Experiment ID")
+    ai_recommend_parser.add_argument("--ai-model", default="openai:gpt-4", help="AI model to use")
+    ai_recommend_parser.add_argument("--constraints", nargs="*", help="Optimization constraints as key=value pairs")
+    ai_recommend_parser.set_defaults(func=cmd_ai_recommend)
+    
+    # ai-preview command
+    ai_preview_parser = subparsers.add_parser("ai-preview", help="Preview AI optimization recommendation")
+    ai_preview_parser.add_argument("--experiment-id", required=True, help="Experiment ID")
+    ai_preview_parser.add_argument("--ai-model", default="openai:gpt-4", help="AI model to use")
+    ai_preview_parser.add_argument("--constraints", nargs="*", help="Optimization constraints as key=value pairs")
+    ai_preview_parser.set_defaults(func=cmd_ai_preview)
+    
+    # ai-optimize command
+    ai_optimize_parser = subparsers.add_parser("ai-optimize", help="Run AI-optimized iteration")
+    ai_optimize_parser.add_argument("--experiment-id", required=True, help="Experiment ID")
+    ai_optimize_parser.add_argument("--ai-model", default="openai:gpt-4", help="AI model to use")
+    ai_optimize_parser.add_argument("--constraints", nargs="*", help="Optimization constraints as key=value pairs")
+    ai_optimize_parser.set_defaults(func=cmd_ai_optimize)
+    
+    # ai-status command
+    ai_status_parser = subparsers.add_parser("ai-status", help="Show AI system status")
+    ai_status_parser.add_argument("--ai-model", default="openai:gpt-4", help="AI model to use")
+    ai_status_parser.set_defaults(func=cmd_ai_status)
     
     # Parse arguments and execute command
     args = parser.parse_args()
