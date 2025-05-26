@@ -137,16 +137,16 @@ This document outlines the development plan for building the Solr query optimiza
 - [x] Build coordinated multi-agent strategies
 - [x] Design risk-aware optimization planning
 
-## Phase 4: Data Models and Storage ✅ MOSTLY COMPLETED
+## Phase 4: Data Models and Storage ✅ COMPLETED
 
 - [x] Implement experiment configuration data model
 - [x] Build query configuration data model
 - [x] Develop iteration result data model
 - [x] Create AI-enhanced data models (OptimizationContext, AgentRecommendation)
 - [x] Implement file-based persistence layer
-- [ ] Create corpus and query set reference system
-- [ ] Implement judgment storage and retrieval
-- [ ] Add database persistence options (SQLite/PostgreSQL)
+- [x] Create corpus and query set reference system
+- [x] Implement judgment storage and retrieval
+- [x] Add database persistence options (SQLite/PostgreSQL)
 
 ## Phase 5: Integration and Next Steps 🚧 IN PROGRESS
 
@@ -233,7 +233,7 @@ This document outlines the development plan for building the Solr query optimiza
 6. **Release Candidate**: Fully tested system with documentation
 7. **Production Release**: Stable, documented, and deployable system
 
-## Current Status (End of Phase 3)
+## Current Status (End of Phase 4)
 
 ### ✅ Completed
 - Complete AI agent framework with 6 specialized agents
@@ -243,6 +243,10 @@ This document outlines the development plan for building the Solr query optimiza
 - File-based storage with branching and import/export
 - Risk assessment and confidence scoring system
 - Fallback mechanisms for AI system failures
+- Corpus and query set reference system with multiple format support
+- Comprehensive judgment utilities for CSV, TREC, and JSON formats
+- Database persistence layer with SQLite and PostgreSQL support
+- Advanced data models for all experiment components
 
 ### 🚧 Next Priorities
 1. **CLI Integration**: Integrate AI agents into main CLI commands
