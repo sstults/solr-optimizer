@@ -1,0 +1,25 @@
+{
+  "dataset_info": {
+    "total_products": 10000,
+    "total_queries": 75,
+    "total_judgments": 2670,
+    "avg_judgments_per_query": 35.6
+  },
+  "product_categories": {
+    "Electronics": 2046,
+    "Clothing": 2017,
+    "Sports & Outdoors": 2006,
+    "Books": 1993,
+    "Home & Kitchen": 1938
+  },
+  "judgment_distribution": {
+    "1": 1303,
+    "0": 750,
+    "2": 617
+  },
+  "price_statistics": {
+    "min_price": 10.04,
+    "max_price": 1999.63,
+    "avg_price": 385.3315509999999
+  }
+}

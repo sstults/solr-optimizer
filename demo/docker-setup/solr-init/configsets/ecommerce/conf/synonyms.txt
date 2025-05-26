@@ -1,0 +1,53 @@
+# Common ecommerce synonyms for product search
+# Format: word1,word2,word3 => synonym1,synonym2
+
+# Electronics synonyms
+tv,television,telly
+phone,mobile,smartphone,cell phone
+laptop,notebook,computer
+headphones,earphones,earbuds,headset
+speaker,speakers
+camera,cam
+tablet,ipad
+
+# Clothing synonyms  
+shirt,top,blouse
+pants,trousers,jeans
+shoes,footwear,sneakers
+jacket,coat,outerwear
+dress,gown
+hat,cap,beanie
+
+# Size synonyms
+small,sm,s
+medium,med,m
+large,lg,l
+extra large,xl,extra-large
+
+# Color synonyms
+black,blk
+white,wht
+red,rd
+blue,blu
+green,grn
+yellow,ylw
+purple,prpl
+
+# Material synonyms
+cotton,100% cotton
+leather,genuine leather
+wool,100% wool
+polyester,poly
+silk,100% silk
+
+# Quality synonyms
+premium,high-quality,top-quality
+budget,affordable,cheap,inexpensive
+professional,pro
+durable,long-lasting,sturdy
+
+# Brand expansion examples (these would be customized per retailer)
+apple,iphone,macbook,ipad
+samsung,galaxy
+nike,swoosh
+adidas,three stripes

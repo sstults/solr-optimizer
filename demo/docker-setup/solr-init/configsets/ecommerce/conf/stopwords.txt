@@ -1,0 +1,51 @@
+# Standard English stopwords for ecommerce search
+# Based on Lucene's standard stopwords with ecommerce-specific additions
+
+# Standard English stopwords
+a
+an
+and
+are
+as
+at
+be
+but
+by
+for
+if
+in
+into
+is
+it
+no
+not
+of
+on
+or
+such
+that
+the
+their
+then
+there
+these
+they
+this
+to
+was
+will
+with
+
+# Ecommerce-specific stopwords to consider removing
+# (these might be useful for product search)
+# buy
+# sale
+# shop
+# store
+# price
+# cost
+# cheap
+# expensive
+# free
+# shipping
+# delivery
