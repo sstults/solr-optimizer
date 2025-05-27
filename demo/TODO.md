@@ -40,13 +40,28 @@
   * Provides specific fix suggestions for each type of failure
   * Continues with fallback configurations when possible
 
-## Priority 3: Enhanced Reporting
+## Priority 3: Enhanced Reporting ✅ COMPLETED
 
-- [ ] Show sample search results for manual verification in demo output
-- [ ] Add query-by-query breakdown of NDCG scores in results
-- [ ] Include search result count validation in optimization reports
-- [ ] Display top-scoring documents for each query to verify relevance
-- [ ] Add before/after comparison showing document retrieval counts
+- [x] Show sample search results for manual verification in demo output
+  * Created `demo/enhanced_reporting.py` with comprehensive reporting functionality
+  * Implemented `show_sample_results_report()` method to display top search results
+  * Shows rank, score, title, brand, and description snippets for manual verification
+- [x] Add query-by-query breakdown of NDCG scores in results
+  * Added `show_query_ndcg_breakdown()` method with detailed per-query analysis
+  * Displays NDCG scores sorted by performance with color-coded indicators
+  * Shows best and worst performing queries with averages
+- [x] Include search result count validation in optimization reports
+  * Implemented `validate_result_counts()` and `show_result_count_validation()` methods
+  * Tests result availability at different depths (top 10, 20, 50, 100)
+  * Provides summary statistics and identifies queries with insufficient results
+- [x] Display top-scoring documents for each query to verify relevance
+  * Created `show_top_scoring_documents()` method with relevance verification
+  * Shows top-ranking documents with relevance judgments and indicators
+  * Includes document IDs, scores, and relevance assessments for quality validation
+- [x] Add before/after comparison showing document retrieval counts
+  * Implemented `show_before_after_comparison()` method for optimization impact analysis
+  * Compares baseline vs optimized result counts with improvement tracking
+  * Shows total improvements and percentage changes in document retrieval
 
 ## Priority 4: Configuration Debugging
 

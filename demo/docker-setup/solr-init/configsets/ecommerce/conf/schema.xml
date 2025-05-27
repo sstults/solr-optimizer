@@ -84,8 +84,14 @@
   <!-- Copy title to exact match field -->
   <copyField source="product_title" dest="title_exact"/>
   
-  <!-- Copy all content to catch-all _text_ field -->
-  <copyField source="*" dest="_text_"/>
+  <!-- Copy all searchable content to catch-all _text_ field for default searches -->
+  <copyField source="product_title" dest="_text_"/>
+  <copyField source="product_description" dest="_text_"/>
+  <copyField source="product_bullet_point" dest="_text_"/>
+  <copyField source="product_brand" dest="_text_"/>
+  <copyField source="product_color" dest="_text_"/>
+  <copyField source="category" dest="_text_"/>
+  <copyField source="query" dest="_text_"/>
 
   <!-- Unique key -->
   <uniqueKey>id</uniqueKey>

@@ -55,6 +55,10 @@ class EnhancedDemoOrchestrator:
         self.iteration_history = []
         self.validator = None
         self.fallback_config = None
+        self.demo_queries = []
+        self.demo_judgments = {}
+        self.query_results_history = {}  # Store sample results for each iteration
+        self.query_ndcg_breakdown = {}   # Store per-query NDCG scores
         
         # Optimization strategies to try
         self.optimization_strategies = [

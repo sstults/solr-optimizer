@@ -62,10 +62,26 @@ This creates:
 
 ### 4. Run the Demo
 
+Choose between two demo options:
+
+**Option A: Standard Demo (3 fixed iterations)**
 ```bash
-# Run the complete optimization demo
+# Run the standard optimization demo
 python demo/run_complete_demo.py
 ```
+
+**Option B: Enhanced Demo (iterative until improvement found)**
+```bash
+# Run the enhanced demo with explicit progress tracking
+python demo/run_enhanced_demo.py
+```
+
+The enhanced demo addresses cases where NDCG improvements aren't immediately visible by:
+- Trying multiple optimization strategies iteratively
+- Running minimum 5 attempts, maximum 10 attempts
+- Continuing until NDCG improves OR max attempts reached
+- Providing much more explicit logging of what's happening
+- Showing detailed progress tracking and analysis
 
 ## Demo Workflow
 
