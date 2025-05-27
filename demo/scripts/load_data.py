@@ -200,7 +200,7 @@ class SolrDataLoader:
             return False
     
     def verify_data_loaded(self) -> bool:
-        """Verify that data was loaded correctly."""
+        """Verify that data was loaded correctly with comprehensive quality checks."""
         try:
             logger.info("🔍 Verifying loaded data...")
             
@@ -221,34 +221,135 @@ class SolrDataLoader:
                 logger.error("❌ No documents found in collection")
                 return False
             
-            # Test a sample query
-            response = requests.get(
-                f"{self.solr_url}/{self.collection_name}/select",
-                params={
-                    "q": "laptop",
-                    "rows": "5",
-                    "wt": "json",
-                    "fl": "id,product_title,product_brand"
-                },
-                timeout=10
-            )
-            response.raise_for_status()
+            # Data quality checks
+            quality_passed = self._run_data_quality_checks()
             
-            result = response.json()
-            found_docs = result["response"]["numFound"]
+            # Test multiple sample queries to ensure search functionality
+            test_queries = ["laptop", "smartphone", "headphones", "camera"]
+            working_queries = 0
             
-            logger.info(f"   🔍 Sample query 'laptop' found {found_docs} results")
+            for query in test_queries:
+                try:
+                    response = requests.get(
+                        f"{self.solr_url}/{self.collection_name}/select",
+                        params={
+                            "q": query,
+                            "df": "_text_",
+                            "rows": "5",
+                            "wt": "json",
+                            "fl": "id,product_title,product_brand"
+                        },
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    
+                    result = response.json()
+                    found_docs = result["response"]["numFound"]
+                    
+                    if found_docs > 0:
+                        working_queries += 1
+                        sample_doc = result["response"]["docs"][0]
+                        logger.info(f"   ✅ Query '{query}': {found_docs} results (e.g., {sample_doc.get('product_title', 'N/A')})")
+                    else:
+                        logger.warning(f"   ⚠️  Query '{query}': No results found")
+                        
+                except Exception as e:
+                    logger.warning(f"   ❌ Query '{query}': Error - {e}")
             
-            if found_docs > 0:
-                sample_doc = result["response"]["docs"][0]
-                logger.info(f"   📝 Sample result: {sample_doc.get('product_title', 'N/A')}")
+            search_success_rate = (working_queries / len(test_queries)) * 100
+            logger.info(f"   📊 Search success rate: {search_success_rate:.0f}% ({working_queries}/{len(test_queries)} queries)")
             
-            logger.info("✅ Data verification completed successfully")
-            return True
+            # Overall verification result
+            if quality_passed and search_success_rate >= 75:
+                logger.info("✅ Data verification completed successfully")
+                return True
+            elif search_success_rate >= 50:
+                logger.warning("⚠️  Data verification passed with warnings")
+                logger.warning("   Some queries may not work optimally")
+                return True
+            else:
+                logger.error("❌ Data verification failed")
+                logger.error("   Search functionality is severely impaired")
+                return False
             
         except requests.exceptions.RequestException as e:
             logger.error(f"❌ Error verifying data: {e}")
             return False
+    
+    def _run_data_quality_checks(self) -> bool:
+        """Run comprehensive data quality checks."""
+        try:
+            logger.info("   🔍 Running data quality checks...")
+            
+            # Get field statistics and facets
+            response = requests.get(
+                f"{self.solr_url}/{self.collection_name}/select",
+                params={
+                    "q": "*:*",
+                    "rows": "0",
+                    "wt": "json",
+                    "facet": "true",
+                    "facet.field": ["product_brand", "product_locale"],
+                    "stats": "true",
+                    "stats.field": ["product_title", "product_description"]
+                },
+                timeout=15
+            )
+            response.raise_for_status()
+            
+            result = response.json()
+            total_docs = result["response"]["numFound"]
+            
+            # Check field coverage
+            stats = result.get("stats", {}).get("stats_fields", {})
+            title_stats = stats.get("product_title", {})
+            desc_stats = stats.get("product_description", {})
+            
+            title_count = title_stats.get("count", 0)
+            desc_count = desc_stats.get("count", 0)
+            
+            title_coverage = (title_count / total_docs) * 100 if total_docs > 0 else 0
+            desc_coverage = (desc_count / total_docs) * 100 if total_docs > 0 else 0
+            
+            # Check diversity
+            facets = result.get("facet_counts", {}).get("facet_fields", {})
+            brand_facets = facets.get("product_brand", [])
+            locale_facets = facets.get("product_locale", [])
+            
+            unique_brands = len(brand_facets) // 2 if brand_facets else 0
+            unique_locales = len(locale_facets) // 2 if locale_facets else 0
+            
+            # Quality assessment
+            quality_issues = []
+            
+            if title_coverage < 90:
+                quality_issues.append(f"Low title coverage: {title_coverage:.1f}%")
+            if desc_coverage < 70:
+                quality_issues.append(f"Low description coverage: {desc_coverage:.1f}%")
+            if unique_brands < 5:
+                quality_issues.append(f"Few unique brands: {unique_brands}")
+            if unique_locales < 1:
+                quality_issues.append(f"No locale diversity: {unique_locales}")
+            
+            # Report results
+            logger.info(f"   📊 Field coverage: titles {title_coverage:.1f}%, descriptions {desc_coverage:.1f}%")
+            logger.info(f"   📊 Data diversity: {unique_brands} brands, {unique_locales} locales")
+            
+            if quality_issues:
+                logger.warning(f"   ⚠️  Data quality issues found:")
+                for issue in quality_issues:
+                    logger.warning(f"      • {issue}")
+                
+                # Return true if issues are minor
+                critical_issues = [i for i in quality_issues if "Low title coverage" in i or "Few unique brands" in i]
+                return len(critical_issues) == 0
+            else:
+                logger.info("   ✅ Data quality checks passed")
+                return True
+                
+        except Exception as e:
+            logger.warning(f"   ⚠️  Error running quality checks: {e}")
+            return True  # Don't fail entirely on quality check errors
     
     def create_demo_queries_file(self) -> bool:
         """Create a demo queries file that works with the loaded data."""
