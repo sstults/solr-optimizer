@@ -19,6 +19,15 @@ import logging
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Import schema validation (added for Priority 4 Configuration Debugging)
+try:
+    from demo.schema_validation import SolrSchemaValidator
+    SCHEMA_VALIDATION_AVAILABLE = True
+except ImportError:
+    SCHEMA_VALIDATION_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("Schema validation not available - install requirements")
+
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
